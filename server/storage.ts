@@ -259,7 +259,12 @@ export class MemStorage implements IStorage {
 
   async getDriverQueuePosition(tripId: number): Promise<DestinationQueue | undefined> {
     return Array.from(this.queues.values())
-      .find(q => q.tripId === tripId && q.status === 'waiting');
+      .find(q => q.tripId === tripId);
+  }
+
+  async getAllQueues(): Promise<DestinationQueue[]> {
+    return Array.from(this.queues.values())
+      .sort((a, b) => new Date(a.arrivalTime).getTime() - new Date(b.arrivalTime).getTime());
   }
 
   async updateQueueStatus(queueId: number, status: string): Promise<DestinationQueue | undefined> {

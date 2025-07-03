@@ -10,7 +10,7 @@ import type { DestinationQueue, Trip } from "@shared/schema";
 
 export function QueueStatusCard() {
   const { toast } = useToast();
-  
+
   const { data: activeTrip } = useQuery<Trip>({
     queryKey: ['/api/trips/active'],
     refetchInterval: 5000,
@@ -98,85 +98,76 @@ export function QueueStatusCard() {
 
   return (
     <div className="p-4">
-      <Card className="material-shadow">
+      <Card className="material-shadow border-l-4 border-l-orange-500">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-medium text-gray-900">Queue Status</h2>
-            <Badge 
-              variant={queuePosition.status === 'waiting' ? 'default' : 'secondary'}
-              className={queuePosition.status === 'waiting' ? 'bg-orange-500' : 'bg-green-500'}
-            >
-              {queuePosition.status === 'waiting' ? 'In Queue' : queuePosition.status}
+            <h3 className="font-semibold text-gray-900 flex items-center">
+              <Clock className="h-5 w-5 mr-2 text-orange-600" />
+              Queue at {queuePosition.destination}
+            </h3>
+            <Badge variant="outline" className="border-orange-300 text-orange-600">
+              Position #{queuePosition.queuePosition}
             </Badge>
           </div>
-          
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <MapPin className="h-5 w-5 text-blue-600" />
-              <div>
-                <p className="text-sm text-gray-600">Destination</p>
-                <p className="font-medium">{queuePosition.destination}</p>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-3 bg-blue-50 rounded-lg">
-                <div className="flex items-center justify-center mb-1">
-                  <Users className="h-5 w-5 text-blue-600" />
-                </div>
-                <p className="text-2xl font-bold text-blue-600">
-                  {queuePosition.queuePosition}
-                </p>
-                <p className="text-xs text-gray-600">Position in Queue</p>
-              </div>
-              
-              <div className="text-center p-3 bg-orange-50 rounded-lg">
-                <div className="flex items-center justify-center mb-1">
-                  <Clock className="h-5 w-5 text-orange-600" />
-                </div>
-                <p className="text-lg font-bold text-orange-600">
-                  {queuePosition.estimatedBoardingTime 
-                    ? formatTime(queuePosition.estimatedBoardingTime)
-                    : 'Now'
-                  }
-                </p>
-                <p className="text-xs text-gray-600">Estimated Boarding</p>
-              </div>
-            </div>
-
-            {vehiclesAhead > 0 && (
-              <div className="p-3 bg-yellow-50 rounded-lg">
-                <p className="text-sm font-medium text-yellow-800">
-                  {vehiclesAhead} vehicle{vehiclesAhead > 1 ? 's' : ''} ahead of you
-                </p>
-                <p className="text-xs text-yellow-600 mt-1">
-                  Estimated wait: ~{vehiclesAhead * 5} minutes
-                </p>
-              </div>
-            )}
-
-            {isFirst && queuePosition.status === 'waiting' && (
-              <div className="p-3 bg-green-50 rounded-lg border-2 border-green-200">
-                <div className="flex items-center space-x-2 mb-2">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
+          <div className="space-y-3">
+            {isFirst ? (
+              <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                <div className="flex items-center mb-2">
+                  <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
                   <p className="text-sm font-medium text-green-800">
-                    You're next! Ready to board passengers
+                    You're first in line!
                   </p>
                 </div>
+                <p className="text-xs text-green-700 mb-3">
+                  Your vehicle arrived first at this destination. You can now proceed to pick up passengers.
+                </p>
                 <Button
                   className="w-full bg-green-600 hover:bg-green-700 text-white"
                   onClick={() => updateStatusMutation.mutate('boarding')}
                   disabled={updateStatusMutation.isPending}
                 >
-                  Start Boarding
+                  Start Boarding Passengers
                 </Button>
+              </div>
+            ) : (
+              <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-medium text-orange-800">
+                    {vehiclesAhead} vehicle{vehiclesAhead !== 1 ? 's' : ''} ahead
+                  </p>
+                  <span className="text-xs text-orange-600 font-medium">
+                    ~{vehiclesAhead * 5}min wait
+                  </span>
+                </div>
+                <p className="text-xs text-orange-700">
+                  Queue position is based on arrival time at destination. Please wait for your turn.
+                </p>
               </div>
             )}
 
+            <div className="flex items-center justify-between text-sm text-gray-600 bg-gray-50 p-2 rounded">
+              <span className="flex items-center">
+                <Clock className="h-4 w-4 mr-1" />
+                Arrived: {formatTime(queuePosition.arrivalTime)}
+              </span>
+              {queuePosition.estimatedBoardingTime && !isFirst && (
+                <span className="text-blue-600 font-medium">
+                  ETA: {formatTime(queuePosition.estimatedBoardingTime)}
+                </span>
+              )}
+            </div>
+
             {queuePosition.status === 'boarding' && (
-              <div className="p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm font-medium text-blue-800 mb-2">
-                  Currently boarding passengers
+              <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center mb-2">
+                  <Users className="h-5 w-5 text-blue-600 mr-2" />
+                  <p className="text-sm font-medium text-blue-800">
+                    Currently boarding passengers
+                  </p>
+                </div>
+                <p className="text-xs text-blue-700 mb-3">
+                  Complete boarding and depart when ready.
                 </p>
                 <Button
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white"
@@ -191,15 +182,20 @@ export function QueueStatusCard() {
             {/* Queue overview */}
             {destinationQueue.length > 1 && (
               <div className="mt-4 pt-4 border-t border-gray-200">
-                <h3 className="text-sm font-medium text-gray-900 mb-2">
-                  Queue at {queuePosition.destination}
+                <h3 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
+                  <MapPin className="h-4 w-4 mr-1" />
+                  Current Queue ({destinationQueue.length} vehicles)
                 </h3>
                 <div className="space-y-2">
                   {destinationQueue.slice(0, 5).map((item, index) => (
                     <div 
                       key={item.id}
                       className={`flex items-center justify-between p-2 rounded ${
-                        item.id === queuePosition.id ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'
+                        item.id === queuePosition.id 
+                          ? 'bg-blue-50 border border-blue-200' 
+                          : index === 0 
+                          ? 'bg-green-50 border border-green-200'
+                          : 'bg-gray-50'
                       }`}
                     >
                       <div className="flex items-center space-x-2">
@@ -208,10 +204,15 @@ export function QueueStatusCard() {
                         }`}>
                           {item.queuePosition}
                         </span>
-                        <span className="text-sm">
-                          Trip #{item.tripId}
-                          {item.id === queuePosition.id && ' (You)'}
-                        </span>
+                        <div>
+                          <span className="text-sm font-medium">
+                            Trip #{item.tripId}
+                            {item.id === queuePosition.id && ' (You)'}
+                          </span>
+                          <p className="text-xs text-gray-500">
+                            Arrived: {formatTime(item.arrivalTime)}
+                          </p>
+                        </div>
                       </div>
                       <Badge 
                         variant="outline" 
@@ -233,6 +234,16 @@ export function QueueStatusCard() {
                 </div>
               </div>
             )}
+
+            {/* Queue Information */}
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+              <p className="text-xs text-blue-800 font-medium mb-1">ℹ️ Queue Information</p>
+              <p className="text-xs text-blue-700">
+                • Queue position is automatically assigned based on arrival time<br/>
+                • First to arrive = First in queue<br/>
+                • Average boarding time: 5 minutes per vehicle
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>

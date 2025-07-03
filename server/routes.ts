@@ -194,6 +194,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Automatically add to destination queue when trip ends
+      // Queue position is determined by arrival time at destination
       const queueEntry = await storage.addToQueue({
         tripId: trip.id,
         destination: trip.destination,
@@ -204,7 +205,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       broadcastToClients({
         type: 'trip_ended',
         trip,
-        queuePosition: queueEntry
+        queuePosition: queueEntry,
+        message: `You are now #${queueEntry.queuePosition} in queue at ${trip.destination}`
       });
       
       res.json({ trip, queuePosition: queueEntry });
@@ -312,6 +314,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Queue management routes
+  app.get('/api/queue/all', async (req, res) => {
+    try {
+      const allQueues = await storage.getAllQueues();
+      res.json(allQueues);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch all queues' });
+    }
+  });
+
   app.get('/api/queue/:destination', async (req, res) => {
     try {
       const destination = decodeURIComponent(req.params.destination);
