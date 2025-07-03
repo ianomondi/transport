@@ -7,12 +7,14 @@ import Dashboard from "@/pages/dashboard";
 import Trips from "@/pages/trips";
 import Analytics from "@/pages/analytics";
 import Settings from "@/pages/settings";
+import Queue from "@/pages/queue";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/trips" component={Trips} />
+      <Route path="/queue" component={Queue} />
       <Route path="/analytics" component={Analytics} />
       <Route path="/settings" component={Settings} />
     </Switch>

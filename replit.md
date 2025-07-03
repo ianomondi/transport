@@ -33,19 +33,23 @@ Transit Tracker is a modern web application designed for transit drivers to mana
 1. **Active Trip Management**: Start, monitor, and end transit trips
 2. **Real-time Passenger Tracking**: Board/alight passenger events
 3. **GPS Location Services**: Real-time location tracking and route mapping
-4. **Live Analytics**: Performance metrics and statistics
-5. **Trip History**: Comprehensive trip logging and review
+4. **Destination Queue Management**: Automatic queuing system based on arrival time
+5. **Live Analytics**: Performance metrics and statistics
+6. **Trip History**: Comprehensive trip logging and review
 
 ### Database Schema
 - **trips**: Core trip data with status, passenger counts, and route information
 - **passengerEvents**: Passenger boarding/alighting events with location data
 - **locations**: Named locations with popularity tracking
 - **analytics**: Daily performance metrics and hourly data
+- **destinationQueues**: Vehicle queue management with arrival times and positions
 
 ### WebSocket Features
 - Real-time location updates from driver devices
 - Live passenger count synchronization
 - Trip status broadcasting to connected clients
+- Automatic trip completion based on location/time
+- Queue position updates and notifications
 - Automatic reconnection with exponential backoff
 
 ## Data Flow
@@ -105,6 +109,7 @@ Transit Tracker is a modern web application designed for transit drivers to mana
 ## Changelog
 
 - July 03, 2025. Initial setup
+- July 03, 2025. Added automatic destination queue management system with first-come-first-served positioning, real-time status updates, and estimated boarding times
 
 ## User Preferences
 

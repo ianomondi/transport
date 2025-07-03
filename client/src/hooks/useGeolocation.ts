@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useWebSocket } from './useWebSocket';
 
 interface GeolocationState {
   location: { lat: number; lng: number } | null;
@@ -7,6 +8,7 @@ interface GeolocationState {
 }
 
 export function useGeolocation() {
+  const { sendMessage } = useWebSocket();
   const [state, setState] = useState<GeolocationState>({
     location: null,
     error: null,
@@ -25,13 +27,22 @@ export function useGeolocation() {
 
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
+        const newLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        
         setState({
-          location: {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          },
+          location: newLocation,
           error: null,
           isLoading: false,
+        });
+
+        // Send location update via WebSocket for active trips
+        sendMessage({
+          type: 'location_update',
+          location: newLocation,
+          timestamp: new Date().toISOString(),
         });
       },
       (error) => {

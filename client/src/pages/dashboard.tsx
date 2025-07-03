@@ -7,6 +7,7 @@ import { TripStatistics } from "@/components/TripStatistics";
 import { RecentTrips } from "@/components/RecentTrips";
 import { NewTripModal } from "@/components/NewTripModal";
 import { NotificationToast } from "@/components/NotificationToast";
+import { QueueStatusCard } from "@/components/QueueStatusCard";
 import { useState } from "react";
 
 export default function Dashboard() {
@@ -17,6 +18,7 @@ export default function Dashboard() {
       <AppHeader />
       <main className="pb-20 min-h-screen">
         <ActiveTripCard />
+        <QueueStatusCard />
         <QuickActions onNewTrip={() => setShowNewTripModal(true)} />
         <LiveMap />
         <TripStatistics />

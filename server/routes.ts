@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertTripSchema, insertPassengerEventSchema, insertLocationSchema } from "@shared/schema";
+import { insertTripSchema, insertPassengerEventSchema, insertLocationSchema, insertDestinationQueueSchema } from "@shared/schema";
 import { z } from "zod";
 
 interface WebSocketClient extends WebSocket {
@@ -39,12 +39,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
               route: [...(activeTrip.route || []), data.location]
             });
             
-            // Broadcast location update to all clients
-            broadcastToClients({
-              type: 'trip_location_update',
-              tripId: activeTrip.id,
-              location: data.location
-            });
+            // Check if driver has reached destination and auto-end trip
+            // For demo purposes, we'll check if trip has been running for more than 30 seconds
+            const tripDuration = Date.now() - new Date(activeTrip.startTime).getTime();
+            if (tripDuration > 30000) { // 30 seconds for demo
+              // Auto-end trip and add to queue
+              const completedTrip = await storage.updateTrip(activeTrip.id, {
+                status: 'completed',
+                endTime: new Date()
+              });
+              
+              if (completedTrip) {
+                const queueEntry = await storage.addToQueue({
+                  tripId: completedTrip.id,
+                  destination: completedTrip.destination,
+                  driverId: `driver_${clientId}`
+                });
+                
+                broadcastToClients({
+                  type: 'trip_auto_completed',
+                  trip: completedTrip,
+                  queuePosition: queueEntry,
+                  message: 'Trip automatically ended - destination reached'
+                });
+              }
+            } else {
+              // Broadcast normal location update
+              broadcastToClients({
+                type: 'trip_location_update',
+                tripId: activeTrip.id,
+                location: data.location
+              });
+            }
           }
         }
       } catch (error) {
@@ -167,13 +193,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalDistance: (parseFloat(currentAnalytics?.totalDistance || "0") + parseFloat(trip.totalDistance || "0")).toString()
       });
       
-      // Broadcast trip end to all clients
+      // Automatically add to destination queue when trip ends
+      const queueEntry = await storage.addToQueue({
+        tripId: trip.id,
+        destination: trip.destination,
+        driverId: `driver_${Math.random().toString(36).substring(7)}`
+      });
+
+      // Broadcast trip end and queue position to all clients
       broadcastToClients({
         type: 'trip_ended',
-        trip
+        trip,
+        queuePosition: queueEntry
       });
       
-      res.json(trip);
+      res.json({ trip, queuePosition: queueEntry });
     } catch (error) {
       res.status(500).json({ error: 'Failed to end trip' });
     }
@@ -274,6 +308,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(analytics);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch analytics range' });
+    }
+  });
+
+  // Queue management routes
+  app.get('/api/queue/:destination', async (req, res) => {
+    try {
+      const destination = decodeURIComponent(req.params.destination);
+      const queue = await storage.getQueueForDestination(destination);
+      res.json(queue);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch queue' });
+    }
+  });
+
+  app.get('/api/queue/position/:tripId', async (req, res) => {
+    try {
+      const tripId = parseInt(req.params.tripId);
+      const queuePosition = await storage.getDriverQueuePosition(tripId);
+      res.json(queuePosition);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch queue position' });
+    }
+  });
+
+  app.patch('/api/queue/:queueId/status', async (req, res) => {
+    try {
+      const queueId = parseInt(req.params.queueId);
+      const { status } = req.body;
+      const updatedQueue = await storage.updateQueueStatus(queueId, status);
+      
+      if (!updatedQueue) {
+        return res.status(404).json({ error: 'Queue entry not found' });
+      }
+
+      // Broadcast queue update to all clients
+      broadcastToClients({
+        type: 'queue_updated',
+        queue: updatedQueue
+      });
+      
+      res.json(updatedQueue);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update queue status' });
+    }
+  });
+
+  app.delete('/api/queue/:queueId', async (req, res) => {
+    try {
+      const queueId = parseInt(req.params.queueId);
+      await storage.removeFromQueue(queueId);
+      
+      // Broadcast queue removal to all clients
+      broadcastToClients({
+        type: 'queue_removed',
+        queueId
+      });
+      
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to remove from queue' });
     }
   });
 

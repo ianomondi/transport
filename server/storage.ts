@@ -3,13 +3,16 @@ import {
   passengerEvents, 
   locations, 
   analytics,
+  destinationQueues,
   type Trip, 
   type InsertTrip,
   type PassengerEvent,
   type InsertPassengerEvent,
   type Location,
   type InsertLocation,
-  type Analytics
+  type Analytics,
+  type DestinationQueue,
+  type InsertDestinationQueue
 } from "@shared/schema";
 
 export interface IStorage {
@@ -35,6 +38,13 @@ export interface IStorage {
   getTodayAnalytics(): Promise<Analytics | undefined>;
   updateAnalytics(date: Date, data: Partial<Analytics>): Promise<Analytics>;
   getAnalyticsByDateRange(startDate: Date, endDate: Date): Promise<Analytics[]>;
+  
+  // Queue management operations
+  addToQueue(queue: InsertDestinationQueue): Promise<DestinationQueue>;
+  getQueueForDestination(destination: string): Promise<DestinationQueue[]>;
+  getDriverQueuePosition(tripId: number): Promise<DestinationQueue | undefined>;
+  updateQueueStatus(queueId: number, status: string): Promise<DestinationQueue | undefined>;
+  removeFromQueue(queueId: number): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -42,14 +52,16 @@ export class MemStorage implements IStorage {
   private passengerEvents: Map<number, PassengerEvent>;
   private locations: Map<number, Location>;
   private analytics: Map<string, Analytics>;
-  private currentId: { trips: number; events: number; locations: number; analytics: number };
+  private queues: Map<number, DestinationQueue>;
+  private currentId: { trips: number; events: number; locations: number; analytics: number; queues: number };
 
   constructor() {
     this.trips = new Map();
     this.passengerEvents = new Map();
     this.locations = new Map();
     this.analytics = new Map();
-    this.currentId = { trips: 1, events: 1, locations: 1, analytics: 1 };
+    this.queues = new Map();
+    this.currentId = { trips: 1, events: 1, locations: 1, analytics: 1, queues: 1 };
     
     // Initialize with some popular locations
     this.initializeLocations();
@@ -208,6 +220,83 @@ export class MemStorage implements IStorage {
         return analyticsDate >= startDate && analyticsDate <= endDate;
       })
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }
+
+  async addToQueue(insertQueue: InsertDestinationQueue): Promise<DestinationQueue> {
+    const id = this.currentId.queues++;
+    
+    // Calculate queue position based on existing queue for this destination
+    const existingQueue = Array.from(this.queues.values())
+      .filter(q => q.destination === insertQueue.destination && q.status === 'waiting')
+      .sort((a, b) => new Date(a.arrivalTime).getTime() - new Date(b.arrivalTime).getTime());
+    
+    const queuePosition = existingQueue.length + 1;
+    
+    // Calculate estimated boarding time (5 minutes per vehicle ahead)
+    const estimatedBoardingTime = new Date();
+    estimatedBoardingTime.setMinutes(estimatedBoardingTime.getMinutes() + (queuePosition - 1) * 5);
+    
+    const queue: DestinationQueue = {
+      id,
+      tripId: insertQueue.tripId,
+      destination: insertQueue.destination,
+      arrivalTime: new Date(),
+      queuePosition,
+      status: 'waiting',
+      driverId: insertQueue.driverId || null,
+      estimatedBoardingTime,
+    };
+    
+    this.queues.set(id, queue);
+    return queue;
+  }
+
+  async getQueueForDestination(destination: string): Promise<DestinationQueue[]> {
+    return Array.from(this.queues.values())
+      .filter(q => q.destination === destination)
+      .sort((a, b) => a.queuePosition - b.queuePosition);
+  }
+
+  async getDriverQueuePosition(tripId: number): Promise<DestinationQueue | undefined> {
+    return Array.from(this.queues.values())
+      .find(q => q.tripId === tripId && q.status === 'waiting');
+  }
+
+  async updateQueueStatus(queueId: number, status: string): Promise<DestinationQueue | undefined> {
+    const queue = this.queues.get(queueId);
+    if (!queue) return undefined;
+
+    const updatedQueue = { ...queue, status };
+    this.queues.set(queueId, updatedQueue);
+
+    // If vehicle departs, update positions for remaining vehicles
+    if (status === 'departed') {
+      const remainingQueues = Array.from(this.queues.values())
+        .filter(q => q.destination === queue.destination && q.status === 'waiting' && q.queuePosition > queue.queuePosition);
+      
+      for (const remainingQueue of remainingQueues) {
+        const newPosition = remainingQueue.queuePosition - 1;
+        const newEstimatedTime = new Date();
+        newEstimatedTime.setMinutes(newEstimatedTime.getMinutes() + (newPosition - 1) * 5);
+        
+        const updatedRemaining = {
+          ...remainingQueue,
+          queuePosition: newPosition,
+          estimatedBoardingTime: newEstimatedTime
+        };
+        this.queues.set(remainingQueue.id, updatedRemaining);
+      }
+    }
+
+    return updatedQueue;
+  }
+
+  async removeFromQueue(queueId: number): Promise<void> {
+    const queue = this.queues.get(queueId);
+    if (queue) {
+      await this.updateQueueStatus(queueId, 'departed');
+      this.queues.delete(queueId);
+    }
   }
 }
 
