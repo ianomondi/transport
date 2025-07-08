@@ -1,8 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin, Clock, Users } from "lucide-react";
 import { useLocation } from "wouter";
+import { TripStatusBadge } from "./TripStatusBadge";
 import type { Trip } from "@shared/schema";
 
 export function RecentTrips() {
@@ -59,18 +59,13 @@ export function RecentTrips() {
         {recentTrips.map((trip) => (
           <Card 
             key={trip.id} 
-            className="material-shadow cursor-pointer hover:shadow-lg transition-shadow"
+            className="material-shadow cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
             onClick={() => setLocation(`/trips/${trip.id}`)}
           >
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-gray-600">Trip #{trip.id}</span>
-                <Badge 
-                  variant={trip.status === 'active' ? 'default' : 'secondary'}
-                  className={trip.status === 'active' ? 'bg-green-500' : ''}
-                >
-                  {trip.status}
-                </Badge>
+                <TripStatusBadge status={trip.status} />
               </div>
               <div className="flex items-center space-x-2 mb-2">
                 <MapPin className="h-4 w-4 text-gray-400" />
@@ -81,13 +76,23 @@ export function RecentTrips() {
               <div className="flex items-center justify-between text-xs text-gray-600">
                 <div className="flex items-center space-x-1">
                   <Users className="h-3 w-3" />
-                  <span>{trip.currentPassengers} passengers</span>
+                  <span>
+                    {trip.status === 'completed' ? trip.initialPassengers : trip.currentPassengers} passengers
+                  </span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <Clock className="h-3 w-3" />
                   <span>{new Date(trip.startTime).toLocaleTimeString()}</span>
                 </div>
               </div>
+              {trip.revenue && parseFloat(trip.revenue) > 0 && (
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+                  <span className="text-xs text-gray-500">Revenue</span>
+                  <span className="text-sm font-semibold text-green-600">
+                    ${parseFloat(trip.revenue).toFixed(2)}
+                  </span>
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}

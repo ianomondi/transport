@@ -153,6 +153,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/trips/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid trip ID' });
+      }
+      
       const trip = await storage.getTrip(id);
       
       if (!trip) {
@@ -161,6 +165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(trip);
     } catch (error) {
+      console.error('Error fetching trip:', error);
       res.status(500).json({ error: 'Failed to fetch trip' });
     }
   });
