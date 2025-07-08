@@ -1,6 +1,6 @@
-import { trips, passengerEvents, locations, analytics, destinationQueues, type Trip, type InsertTrip, type PassengerEvent, type InsertPassengerEvent, type Location, type InsertLocation, type Analytics, type DestinationQueue, type InsertDestinationQueue } from "@shared/schema";
+import { trips, passengerEvents, locations, analytics, destinationQueues, expenses, type Trip, type InsertTrip, type PassengerEvent, type InsertPassengerEvent, type Location, type InsertLocation, type Analytics, type DestinationQueue, type InsertDestinationQueue, type Expense, type InsertExpense } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Trip operations
@@ -32,6 +32,12 @@ export interface IStorage {
   getDriverQueuePosition(tripId: number): Promise<DestinationQueue | undefined>;
   updateQueueStatus(queueId: number, status: string): Promise<DestinationQueue | undefined>;
   removeFromQueue(queueId: number): Promise<void>;
+
+  // Expense operations
+  createExpense(expense: InsertExpense): Promise<Expense>;
+  getExpenses(): Promise<Expense[]>;
+  getExpensesByDateRange(startDate: Date, endDate: Date): Promise<Expense[]>;
+  getTodayExpenses(): Promise<Expense[]>;
 }
 
 // Database Storage Implementation
@@ -179,6 +185,37 @@ export class DatabaseStorage implements IStorage {
 
   async removeFromQueue(queueId: number): Promise<void> {
     await db.delete(destinationQueues).where(eq(destinationQueues.id, queueId));
+  }
+
+  async createExpense(insertExpense: InsertExpense): Promise<Expense> {
+    const [expense] = await db
+      .insert(expenses)
+      .values(insertExpense)
+      .returning();
+    return expense;
+  }
+
+  async getExpenses(): Promise<Expense[]> {
+    return await db.select().from(expenses).orderBy(desc(expenses.date));
+  }
+
+  async getExpensesByDateRange(startDate: Date, endDate: Date): Promise<Expense[]> {
+    return await db
+      .select()
+      .from(expenses)
+      .where(
+        sql`${expenses.date} >= ${startDate} AND ${expenses.date} <= ${endDate}`
+      )
+      .orderBy(desc(expenses.date));
+  }
+
+  async getTodayExpenses(): Promise<Expense[]> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    return await db.select().from(expenses).where(eq(expenses.date, today));
   }
 }
 

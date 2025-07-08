@@ -2,7 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertTripSchema, insertPassengerEventSchema, insertLocationSchema, insertDestinationQueueSchema } from "@shared/schema";
+import { insertTripSchema, insertPassengerEventSchema, insertLocationSchema, insertDestinationQueueSchema, insertExpenseSchema } from "@shared/schema";
+import { generateDailyReport, sendDailyReport } from "./email-reporting";
 import { z } from "zod";
 
 interface WebSocketClient extends WebSocket {
@@ -399,6 +400,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: 'Failed to remove from queue' });
+    }
+  });
+
+  // Expense routes
+  app.get('/api/expenses', async (req, res) => {
+    try {
+      const expenses = await storage.getExpenses();
+      res.json(expenses);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch expenses' });
+    }
+  });
+
+  app.get('/api/expenses/today', async (req, res) => {
+    try {
+      const expenses = await storage.getTodayExpenses();
+      res.json(expenses);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch today expenses' });
+    }
+  });
+
+  app.post('/api/expenses', async (req, res) => {
+    try {
+      const expenseData = insertExpenseSchema.parse(req.body);
+      const expense = await storage.createExpense(expenseData);
+      res.json(expense);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof z.ZodError ? error.errors : 'Invalid expense data' });
+    }
+  });
+
+  // Email reporting routes
+  app.get('/api/reports/daily', async (req, res) => {
+    try {
+      const date = req.query.date ? new Date(req.query.date as string) : new Date();
+      const report = await generateDailyReport(date);
+      res.json(report);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to generate daily report' });
+    }
+  });
+
+  app.post('/api/reports/email', async (req, res) => {
+    try {
+      const { email, date } = req.body;
+      if (!email) {
+        return res.status(400).json({ error: 'Email address is required' });
+      }
+      
+      const reportDate = date ? new Date(date) : new Date();
+      const success = await sendDailyReport(email, undefined, reportDate);
+      
+      if (success) {
+        res.json({ message: 'Daily report sent successfully' });
+      } else {
+        res.status(500).json({ error: 'Failed to send daily report' });
+      }
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to send daily report' });
     }
   });
 

@@ -57,6 +57,16 @@ export const destinationQueues = pgTable("destination_queues", {
   estimatedBoardingTime: timestamp("estimated_boarding_time"),
 });
 
+export const expenses = pgTable("expenses", {
+  id: serial("id").primaryKey(),
+  description: text("description").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  category: text("category").notNull(),
+  date: timestamp("date").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const insertTripSchema = createInsertSchema(trips).pick({
   origin: true,
   destination: true,
@@ -82,6 +92,14 @@ export const insertDestinationQueueSchema = createInsertSchema(destinationQueues
   driverId: true,
 });
 
+export const insertExpenseSchema = createInsertSchema(expenses).pick({
+  description: true,
+  amount: true,
+  category: true,
+  date: true,
+  notes: true,
+});
+
 export type InsertTrip = z.infer<typeof insertTripSchema>;
 export type Trip = typeof trips.$inferSelect;
 export type InsertPassengerEvent = z.infer<typeof insertPassengerEventSchema>;
@@ -91,3 +109,5 @@ export type Location = typeof locations.$inferSelect;
 export type Analytics = typeof analytics.$inferSelect;
 export type DestinationQueue = typeof destinationQueues.$inferSelect;
 export type InsertDestinationQueue = z.infer<typeof insertDestinationQueueSchema>;
+export type Expense = typeof expenses.$inferSelect;
+export type InsertExpense = z.infer<typeof insertExpenseSchema>;
