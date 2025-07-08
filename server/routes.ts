@@ -150,6 +150,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/trips/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const trip = await storage.getTrip(id);
+      
+      if (!trip) {
+        return res.status(404).json({ error: 'Trip not found' });
+      }
+      
+      res.json(trip);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch trip' });
+    }
+  });
+
   app.patch('/api/trips/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);

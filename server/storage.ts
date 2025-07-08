@@ -65,6 +65,63 @@ export class MemStorage implements IStorage {
     
     // Initialize with some popular locations
     this.initializeLocations();
+    this.initializeSampleTrips();
+  }
+
+  private initializeSampleTrips() {
+    // Create some sample completed trips for demonstration
+    const sampleTrips = [
+      {
+        origin: "Central Station",
+        destination: "Airport Terminal",
+        status: "completed",
+        currentPassengers: 0,
+        initialPassengers: 8,
+        startTime: new Date(Date.now() - 3600000), // 1 hour ago
+        endTime: new Date(Date.now() - 3000000), // 50 minutes ago
+        totalDistance: "12.5",
+        revenue: "45.80",
+        driverName: "John Smith",
+        turnsCount: 15,
+      },
+      {
+        origin: "Downtown",
+        destination: "Mall District", 
+        status: "completed",
+        currentPassengers: 0,
+        initialPassengers: 5,
+        startTime: new Date(Date.now() - 7200000), // 2 hours ago
+        endTime: new Date(Date.now() - 6600000), // 1 hour 50 minutes ago
+        totalDistance: "8.2",
+        revenue: "28.50",
+        driverName: "Sarah Johnson",
+        turnsCount: 12,
+      },
+      {
+        origin: "University Campus",
+        destination: "Central Station",
+        status: "completed", 
+        currentPassengers: 0,
+        initialPassengers: 12,
+        startTime: new Date(Date.now() - 10800000), // 3 hours ago
+        endTime: new Date(Date.now() - 9900000), // 2 hours 45 minutes ago
+        totalDistance: "15.7",
+        revenue: "68.20",
+        driverName: "Mike Wilson",
+        turnsCount: 22,
+      }
+    ];
+
+    sampleTrips.forEach(tripData => {
+      const id = this.currentId.trips++;
+      const trip: Trip = {
+        id,
+        ...tripData,
+        currentLocation: null,
+        route: [],
+      };
+      this.trips.set(id, trip);
+    });
   }
 
   private initializeLocations() {
@@ -102,6 +159,9 @@ export class MemStorage implements IStorage {
       currentLocation: insertTrip.currentLocation || null,
       route: [],
       totalDistance: "0",
+      revenue: "0",
+      driverName: "Driver",
+      turnsCount: 0,
     };
     this.trips.set(id, trip);
     

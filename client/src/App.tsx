@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Dashboard from "@/pages/dashboard";
 import Trips from "@/pages/trips";
+import TripDetails from "@/pages/trip-details";
 import Analytics from "@/pages/analytics";
 import Settings from "@/pages/settings";
 import Queue from "@/pages/queue";
@@ -14,6 +15,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/trips" component={Trips} />
+      <Route path="/trips/:id" component={TripDetails} />
       <Route path="/queue" component={Queue} />
       <Route path="/analytics" component={Analytics} />
       <Route path="/settings" component={Settings} />

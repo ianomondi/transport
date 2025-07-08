@@ -14,6 +14,9 @@ export const trips = pgTable("trips", {
   currentLocation: jsonb("current_location").$type<{ lat: number; lng: number }>(),
   route: jsonb("route").$type<{ lat: number; lng: number }[]>().default([]),
   totalDistance: decimal("total_distance", { precision: 8, scale: 2 }).default("0"),
+  revenue: decimal("revenue", { precision: 10, scale: 2 }).default("0"),
+  driverName: text("driver_name").default("Driver"),
+  turnsCount: integer("turns_count").default(0),
 });
 
 export const passengerEvents = pgTable("passenger_events", {

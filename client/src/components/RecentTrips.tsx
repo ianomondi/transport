@@ -2,9 +2,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin, Clock, Users } from "lucide-react";
+import { useLocation } from "wouter";
 import type { Trip } from "@shared/schema";
 
 export function RecentTrips() {
+  const [, setLocation] = useLocation();
   const { data: recentTrips = [], isLoading } = useQuery<Trip[]>({
     queryKey: ['/api/trips/recent?limit=5'],
     refetchInterval: 10000,
@@ -55,7 +57,11 @@ export function RecentTrips() {
       <h3 className="text-lg font-medium text-gray-900 mb-3">Recent Trips</h3>
       <div className="space-y-3">
         {recentTrips.map((trip) => (
-          <Card key={trip.id} className="material-shadow">
+          <Card 
+            key={trip.id} 
+            className="material-shadow cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setLocation(`/trips/${trip.id}`)}
+          >
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-gray-600">Trip #{trip.id}</span>
