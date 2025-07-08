@@ -84,9 +84,10 @@ Transit Tracker is a modern web application designed for transit drivers to mana
 - **Vite**: Development server with HMR
 
 ### Storage Strategy
-- **Primary Storage**: PostgreSQL database via Neon
-- **Development Fallback**: In-memory storage implementation
-- **Session Management**: connect-pg-simple for PostgreSQL sessions
+- **Primary Storage**: PostgreSQL database via Neon Database with Drizzle ORM
+- **Database Connection**: @neondatabase/serverless with connection pooling
+- **Schema Management**: Drizzle Kit for migrations and schema synchronization
+- **Data Models**: Comprehensive trip tracking with revenue, driver, and performance metrics
 
 ## Deployment Strategy
 
@@ -111,6 +112,7 @@ Transit Tracker is a modern web application designed for transit drivers to mana
 - July 03, 2025. Initial setup
 - July 03, 2025. Added automatic destination queue management system with first-come-first-served positioning, real-time status updates, and estimated boarding times
 - July 08, 2025. Successfully migrated from Replit Agent to Replit environment with enhanced trip details functionality including revenue tracking, driver information, distance covered, and trip duration
+- July 08, 2025. Successfully migrated from in-memory storage to PostgreSQL database using Drizzle ORM with full data persistence and enhanced trip details viewing
 
 ## User Preferences
 
