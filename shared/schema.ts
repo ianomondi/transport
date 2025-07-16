@@ -16,6 +16,9 @@ export const trips = pgTable("trips", {
   totalDistance: decimal("total_distance", { precision: 8, scale: 2 }).default("0"),
   revenue: decimal("revenue", { precision: 10, scale: 2 }).default("0"),
   driverName: text("driver_name").default("Driver"),
+  driverContact: text("driver_contact").default(""),
+  assistantName: text("assistant_name").default(""),
+  assistantContact: text("assistant_contact").default(""),
   turnsCount: integer("turns_count").default(0),
 });
 
@@ -72,6 +75,11 @@ export const insertTripSchema = createInsertSchema(trips).pick({
   destination: true,
   initialPassengers: true,
   currentLocation: true,
+  driverName: true,
+  driverContact: true,
+  assistantName: true,
+  assistantContact: true,
+  revenue: true,
 });
 
 export const insertPassengerEventSchema = createInsertSchema(passengerEvents).pick({

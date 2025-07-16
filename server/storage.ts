@@ -1,6 +1,6 @@
 import { trips, passengerEvents, locations, analytics, destinationQueues, expenses, type Trip, type InsertTrip, type PassengerEvent, type InsertPassengerEvent, type Location, type InsertLocation, type Analytics, type DestinationQueue, type InsertDestinationQueue, type Expense, type InsertExpense } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, asc, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Trip operations
@@ -32,6 +32,7 @@ export interface IStorage {
   getDriverQueuePosition(tripId: number): Promise<DestinationQueue | undefined>;
   updateQueueStatus(queueId: number, status: string): Promise<DestinationQueue | undefined>;
   removeFromQueue(queueId: number): Promise<void>;
+  getAllQueues(): Promise<DestinationQueue[]>;
 
   // Expense operations
   createExpense(expense: InsertExpense): Promise<Expense>;
@@ -185,6 +186,13 @@ export class DatabaseStorage implements IStorage {
 
   async removeFromQueue(queueId: number): Promise<void> {
     await db.delete(destinationQueues).where(eq(destinationQueues.id, queueId));
+  }
+
+  async getAllQueues(): Promise<DestinationQueue[]> {
+    return await db
+      .select()
+      .from(destinationQueues)
+      .orderBy(asc(destinationQueues.arrivalTime));
   }
 
   async createExpense(insertExpense: InsertExpense): Promise<Expense> {

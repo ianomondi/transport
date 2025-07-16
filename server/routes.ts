@@ -335,6 +335,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Queue management routes
+  app.get('/api/queue', async (req, res) => {
+    try {
+      const allQueues = await storage.getAllQueues();
+      res.json(allQueues);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch all queues' });
+    }
+  });
+
   app.get('/api/queue/all', async (req, res) => {
     try {
       const allQueues = await storage.getAllQueues();

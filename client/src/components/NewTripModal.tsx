@@ -33,6 +33,11 @@ export function NewTripModal({ isOpen, onClose }: NewTripModalProps) {
       destination: "",
       initialPassengers: 0,
       currentLocation: null,
+      driverName: "",
+      driverContact: "",
+      assistantName: "",
+      assistantContact: "",
+      revenue: "0",
     },
   });
 
@@ -116,6 +121,82 @@ export function NewTripModal({ isOpen, onClose }: NewTripModalProps) {
                       placeholder="0"
                       {...field}
                       onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="driverName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Driver Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter driver name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="driverContact"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Driver Contact</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter driver phone/email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="assistantName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assistant Name (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter assistant name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="assistantContact"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assistant Contact (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter assistant phone/email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="revenue"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Expected Revenue</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />

@@ -122,6 +122,38 @@ export default function TripDetails() {
             </CardContent>
           </Card>
 
+          {/* Driver Information */}
+          <Card className="material-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <User className="h-5 w-5 mr-2" />
+                Driver Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Driver Name</p>
+                    <p className="font-medium">{trip.driverName || "Not specified"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Driver Contact</p>
+                    <p className="font-medium">{trip.driverContact || "Not specified"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Assistant Name</p>
+                    <p className="font-medium">{trip.assistantName || "No assistant"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Assistant Contact</p>
+                    <p className="font-medium">{trip.assistantContact || "No assistant"}</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Financial Information */}
           <Card className="material-shadow">
             <CardHeader>
