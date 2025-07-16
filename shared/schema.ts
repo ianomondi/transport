@@ -89,7 +89,6 @@ export const insertTripSchema = createInsertSchema(trips).pick({
   destination: true,
   initialPassengers: true,
   currentLocation: true,
-  dropOffPoints: true,
   driverId: true,
 });
 

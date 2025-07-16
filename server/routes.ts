@@ -114,11 +114,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   }
 
+  // Route mapping endpoints
+  app.get('/api/routes/locations', async (req, res) => {
+    try {
+      const { getAllAvailableLocations } = await import('./route-mapping.js');
+      const locations = getAllAvailableLocations();
+      res.json(locations);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch locations' });
+    }
+  });
+
+  app.get('/api/routes/destinations/:origin', async (req, res) => {
+    try {
+      const { getAvailableDestinations } = await import('./route-mapping.js');
+      const destinations = getAvailableDestinations(req.params.origin);
+      res.json(destinations);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch destinations' });
+    }
+  });
+
   // Trip routes
   app.post('/api/trips', async (req, res) => {
     try {
       const tripData = insertTripSchema.parse(req.body);
-      const trip = await storage.createTrip(tripData);
+      
+      // Automatically generate drop-off points based on route
+      const { getDropOffPointsForRoute } = await import('./route-mapping.js');
+      const dropOffPoints = getDropOffPointsForRoute(tripData.origin, tripData.destination);
+      
+      // Create trip with automatic drop-off points
+      const tripWithDropOffs = {
+        ...tripData,
+        dropOffPoints
+      };
+      
+      const trip = await storage.createTrip(tripWithDropOffs);
       
       // Broadcast new trip to all clients
       broadcastToClients({
