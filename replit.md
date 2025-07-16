@@ -114,6 +114,7 @@ Transit Tracker is a modern web application designed for transit drivers to mana
 - July 08, 2025. Successfully migrated from Replit Agent to Replit environment with enhanced trip details functionality including revenue tracking, driver information, distance covered, and trip duration
 - July 08, 2025. Successfully migrated from in-memory storage to PostgreSQL database using Drizzle ORM with full data persistence and enhanced trip details viewing
 - July 16, 2025. Enhanced trip management system with detailed driver and assistant information, revenue tracking, comprehensive trip listing, and automatic queue management when trips are completed
+- July 16, 2025. Successfully migrated from Replit Agent to Replit environment with full database setup and automatic route mapping system. Implemented predefined route mappings between major locations (Capital Center ↔ Central Station, Airport ↔ City Center, Downtown ↔ Suburb East) that automatically generate drop-off points with preset fares. Removed manual drop-off point creation from trip form - now uses location dropdowns with cascading destination selection.
 
 ## User Preferences
 
