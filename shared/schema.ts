@@ -13,12 +13,16 @@ export const trips = pgTable("trips", {
   endTime: timestamp("end_time"),
   currentLocation: jsonb("current_location").$type<{ lat: number; lng: number }>(),
   route: jsonb("route").$type<{ lat: number; lng: number }[]>().default([]),
+  dropOffPoints: jsonb("drop_off_points").$type<{
+    name: string;
+    coordinates: { lat: number; lng: number };
+    passengerCount: number;
+    farePerPassenger: number;
+    totalRevenue: number;
+  }[]>().default([]),
   totalDistance: decimal("total_distance", { precision: 8, scale: 2 }).default("0"),
   revenue: decimal("revenue", { precision: 10, scale: 2 }).default("0"),
-  driverName: text("driver_name").default("Driver"),
-  driverContact: text("driver_contact").default(""),
-  assistantName: text("assistant_name").default(""),
-  assistantContact: text("assistant_contact").default(""),
+  driverId: integer("driver_id"),
   turnsCount: integer("turns_count").default(0),
 });
 
@@ -70,16 +74,23 @@ export const expenses = pgTable("expenses", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+export const drivers = pgTable("drivers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  contact: text("contact").notNull(),
+  assistantName: text("assistant_name"),
+  assistantContact: text("assistant_contact"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const insertTripSchema = createInsertSchema(trips).pick({
   origin: true,
   destination: true,
   initialPassengers: true,
   currentLocation: true,
-  driverName: true,
-  driverContact: true,
-  assistantName: true,
-  assistantContact: true,
-  revenue: true,
+  dropOffPoints: true,
+  driverId: true,
 });
 
 export const insertPassengerEventSchema = createInsertSchema(passengerEvents).pick({
@@ -108,6 +119,13 @@ export const insertExpenseSchema = createInsertSchema(expenses).pick({
   notes: true,
 });
 
+export const insertDriverSchema = createInsertSchema(drivers).pick({
+  name: true,
+  contact: true,
+  assistantName: true,
+  assistantContact: true,
+});
+
 export type InsertTrip = z.infer<typeof insertTripSchema>;
 export type Trip = typeof trips.$inferSelect;
 export type InsertPassengerEvent = z.infer<typeof insertPassengerEventSchema>;
@@ -119,3 +137,5 @@ export type DestinationQueue = typeof destinationQueues.$inferSelect;
 export type InsertDestinationQueue = z.infer<typeof insertDestinationQueueSchema>;
 export type Expense = typeof expenses.$inferSelect;
 export type InsertExpense = z.infer<typeof insertExpenseSchema>;
+export type Driver = typeof drivers.$inferSelect;
+export type InsertDriver = z.infer<typeof insertDriverSchema>;

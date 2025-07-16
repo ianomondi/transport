@@ -1,4 +1,4 @@
-import { trips, passengerEvents, locations, analytics, destinationQueues, expenses, type Trip, type InsertTrip, type PassengerEvent, type InsertPassengerEvent, type Location, type InsertLocation, type Analytics, type DestinationQueue, type InsertDestinationQueue, type Expense, type InsertExpense } from "@shared/schema";
+import { trips, passengerEvents, locations, analytics, destinationQueues, expenses, drivers, type Trip, type InsertTrip, type PassengerEvent, type InsertPassengerEvent, type Location, type InsertLocation, type Analytics, type DestinationQueue, type InsertDestinationQueue, type Expense, type InsertExpense, type Driver, type InsertDriver } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, sql } from "drizzle-orm";
 
@@ -39,6 +39,13 @@ export interface IStorage {
   getExpenses(): Promise<Expense[]>;
   getExpensesByDateRange(startDate: Date, endDate: Date): Promise<Expense[]>;
   getTodayExpenses(): Promise<Expense[]>;
+
+  // Driver operations
+  createDriver(driver: InsertDriver): Promise<Driver>;
+  getDrivers(): Promise<Driver[]>;
+  getActiveDrivers(): Promise<Driver[]>;
+  getDriver(id: number): Promise<Driver | undefined>;
+  updateDriver(id: number, updates: Partial<Driver>): Promise<Driver | undefined>;
 }
 
 // Database Storage Implementation
@@ -224,6 +231,39 @@ export class DatabaseStorage implements IStorage {
     tomorrow.setDate(tomorrow.getDate() + 1);
     
     return await db.select().from(expenses).where(eq(expenses.date, today));
+  }
+
+  async createDriver(insertDriver: InsertDriver): Promise<Driver> {
+    const result = await db.insert(drivers).values(insertDriver).returning();
+    return result[0];
+  }
+
+  async getDrivers(): Promise<Driver[]> {
+    const result = await db.select().from(drivers)
+      .orderBy(asc(drivers.name));
+    return result;
+  }
+
+  async getActiveDrivers(): Promise<Driver[]> {
+    const result = await db.select().from(drivers)
+      .where(eq(drivers.isActive, true))
+      .orderBy(asc(drivers.name));
+    return result;
+  }
+
+  async getDriver(id: number): Promise<Driver | undefined> {
+    const result = await db.select().from(drivers)
+      .where(eq(drivers.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async updateDriver(id: number, updates: Partial<Driver>): Promise<Driver | undefined> {
+    const result = await db.update(drivers)
+      .set(updates)
+      .where(eq(drivers.id, id))
+      .returning();
+    return result[0];
   }
 }
 

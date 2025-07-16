@@ -3,6 +3,7 @@ import { ArrowLeft, MapPin, Clock, Users, DollarSign, Navigation, User } from "l
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TripStatusBadge } from "@/components/TripStatusBadge";
+import { DropOffPointManager } from "@/components/DropOffPointManager";
 import { useQuery } from "@tanstack/react-query";
 import { formatTime, formatDate, formatDistance } from "@/lib/utils";
 import type { Trip } from "@shared/schema";
@@ -21,6 +22,13 @@ export default function TripDetails() {
       return res.json();
     }),
     enabled: !!tripId,
+  });
+
+  // Fetch driver details if trip has a driverId
+  const { data: driver } = useQuery({
+    queryKey: ['/api/drivers', trip?.driverId],
+    queryFn: () => fetch(`/api/drivers/${trip?.driverId}`).then(res => res.json()),
+    enabled: !!trip?.driverId,
   });
 
   if (isLoading) {
@@ -122,6 +130,9 @@ export default function TripDetails() {
             </CardContent>
           </Card>
 
+          {/* Drop-off Points Management */}
+          <DropOffPointManager trip={trip} />
+
           {/* Driver Information */}
           <Card className="material-shadow">
             <CardHeader>
@@ -135,19 +146,19 @@ export default function TripDetails() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-600">Driver Name</p>
-                    <p className="font-medium">{trip.driverName || "Not specified"}</p>
+                    <p className="font-medium">{driver?.name || "Not specified"}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Driver Contact</p>
-                    <p className="font-medium">{trip.driverContact || "Not specified"}</p>
+                    <p className="font-medium">{driver?.contact || "Not specified"}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Assistant Name</p>
-                    <p className="font-medium">{trip.assistantName || "No assistant"}</p>
+                    <p className="font-medium">{driver?.assistantName || "No assistant"}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Assistant Contact</p>
-                    <p className="font-medium">{trip.assistantContact || "No assistant"}</p>
+                    <p className="font-medium">{driver?.assistantContact || "No assistant"}</p>
                   </div>
                 </div>
               </div>

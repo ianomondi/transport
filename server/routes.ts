@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertTripSchema, insertPassengerEventSchema, insertLocationSchema, insertDestinationQueueSchema, insertExpenseSchema } from "@shared/schema";
+import { insertTripSchema, insertPassengerEventSchema, insertLocationSchema, insertDestinationQueueSchema, insertExpenseSchema, insertDriverSchema } from "@shared/schema";
 import { generateDailyReport, sendDailyReport } from "./email-reporting";
 import { z } from "zod";
 
@@ -438,6 +438,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(expense);
     } catch (error) {
       res.status(400).json({ error: error instanceof z.ZodError ? error.errors : 'Invalid expense data' });
+    }
+  });
+
+  // Driver routes
+  app.get('/api/drivers', async (req, res) => {
+    try {
+      const drivers = await storage.getDrivers();
+      res.json(drivers);
+    } catch (error) {
+      console.error('Error fetching drivers:', error);
+      res.status(500).json({ error: 'Failed to fetch drivers' });
+    }
+  });
+
+  app.get('/api/drivers/active', async (req, res) => {
+    try {
+      const drivers = await storage.getActiveDrivers();
+      res.json(drivers);
+    } catch (error) {
+      console.error('Error fetching active drivers:', error);
+      res.status(500).json({ error: 'Failed to fetch active drivers' });
+    }
+  });
+
+  app.get('/api/drivers/:id', async (req, res) => {
+    try {
+      const driver = await storage.getDriver(parseInt(req.params.id));
+      if (!driver) {
+        return res.status(404).json({ error: 'Driver not found' });
+      }
+      res.json(driver);
+    } catch (error) {
+      console.error('Error fetching driver:', error);
+      res.status(500).json({ error: 'Failed to fetch driver' });
+    }
+  });
+
+  app.post('/api/drivers', async (req, res) => {
+    try {
+      const driver = await storage.createDriver(req.body);
+      res.json(driver);
+    } catch (error) {
+      console.error('Error creating driver:', error);
+      res.status(500).json({ error: 'Failed to create driver' });
+    }
+  });
+
+  app.patch('/api/drivers/:id', async (req, res) => {
+    try {
+      const driver = await storage.updateDriver(parseInt(req.params.id), req.body);
+      if (!driver) {
+        return res.status(404).json({ error: 'Driver not found' });
+      }
+      res.json(driver);
+    } catch (error) {
+      console.error('Error updating driver:', error);
+      res.status(500).json({ error: 'Failed to update driver' });
     }
   });
 
