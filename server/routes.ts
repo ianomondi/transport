@@ -135,17 +135,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Vehicle endpoints
-  app.get('/api/vehicles/available', async (req, res) => {
-    try {
-      const { getAvailableVehicles } = await import('../shared/vehicles.js');
-      const vehicles = getAvailableVehicles();
-      res.json(vehicles);
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch vehicles' });
-    }
-  });
-
   // Trip routes
   app.post('/api/trips', async (req, res) => {
     try {
@@ -155,53 +144,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { getDropOffPointsForRoute } = await import('./route-mapping.js');
       const dropOffPoints = getDropOffPointsForRoute(tripData.origin, tripData.destination);
       
-      // Create trip with automatic drop-off points (status: pending)
+      // Create trip with automatic drop-off points
       const tripWithDropOffs = {
         ...tripData,
-        dropOffPoints,
-        status: 'pending'
+        dropOffPoints
       };
       
       const trip = await storage.createTrip(tripWithDropOffs);
       
       // Broadcast new trip to all clients
-      broadcastToClients({
-        type: 'trip_created',
-        trip
-      });
-      
-      res.json(trip);
-    } catch (error) {
-      res.status(400).json({ error: error instanceof z.ZodError ? error.errors : 'Invalid trip data' });
-    }
-  });
-
-  app.post('/api/trips/:id/start', async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const trip = await storage.updateTrip(id, {
-        status: 'active',
-        startTime: new Date()
-      });
-      
-      if (!trip) {
-        return res.status(404).json({ error: 'Trip not found' });
-      }
-
-      // Remove vehicle from queue if it exists
-      if (trip.vehicleNumber) {
-        try {
-          const queueItems = await storage.getAllQueues();
-          const vehicleQueueItem = queueItems.find(q => q.driverId === trip.vehicleNumber);
-          if (vehicleQueueItem) {
-            await storage.removeFromQueue(vehicleQueueItem.id);
-          }
-        } catch (error) {
-          console.log('Note: No queue entry found for vehicle', trip.vehicleNumber);
-        }
-      }
-      
-      // Broadcast trip start to all clients
       broadcastToClients({
         type: 'trip_started',
         trip
@@ -209,7 +160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(trip);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to start trip' });
+      res.status(400).json({ error: error instanceof z.ZodError ? error.errors : 'Invalid trip data' });
     }
   });
 
@@ -540,26 +491,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching active drivers:', error);
       res.status(500).json({ error: 'Failed to fetch active drivers' });
-    }
-  });
-
-  app.get('/api/drivers/:id', async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) {
-        return res.status(400).json({ error: 'Invalid driver ID' });
-      }
-      
-      const driver = await storage.getDriver(id);
-      
-      if (!driver) {
-        return res.status(404).json({ error: 'Driver not found' });
-      }
-      
-      res.json(driver);
-    } catch (error) {
-      console.error('Error fetching driver:', error);
-      res.status(500).json({ error: 'Failed to fetch driver' });
     }
   });
 
