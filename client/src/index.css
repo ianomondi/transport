@@ -165,3 +165,21 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(207, 90%, 44%);
 }
+
+/* Fix card spacing and overlapping */
+.space-y-6 > * + * {
+  margin-top: 1.5rem !important;
+}
+
+.space-y-4 > * + * {
+  margin-top: 1rem !important;
+}
+
+.trip-details-card {
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.trip-details-card:last-child {
+  margin-bottom: 2rem;
+}

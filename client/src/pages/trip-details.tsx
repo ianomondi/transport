@@ -84,8 +84,8 @@ export default function TripDetails() {
     : null;
 
   return (
-    <div className="min-h-screen pb-4">
-      <div className="p-4">
+    <div className="min-h-screen pb-8">
+      <div className="p-4 pb-8">
         <Button
           variant="ghost"
           onClick={() => setLocation("/trips")}
@@ -100,21 +100,21 @@ export default function TripDetails() {
           <TripStatusBadge status={trip.status} />
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* Route Information */}
-          <Card className="material-shadow">
+          <Card className="material-shadow trip-details-card">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <MapPin className="h-5 w-5 mr-2" />
                 Route
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
+            <CardContent className="p-6">
+              <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                   <div>
-                    <p className="text-sm text-gray-600">From</p>
+                    <p className="text-sm text-gray-600 mb-1">From</p>
                     <p className="font-medium">{trip.origin}</p>
                   </div>
                 </div>
@@ -122,7 +122,7 @@ export default function TripDetails() {
                 <div className="flex items-center space-x-3">
                   <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
                   <div>
-                    <p className="text-sm text-gray-600">To</p>
+                    <p className="text-sm text-gray-600 mb-1">To</p>
                     <p className="font-medium">{trip.destination}</p>
                   </div>
                 </div>
@@ -131,35 +131,35 @@ export default function TripDetails() {
           </Card>
 
           {/* Drop-off Points Management */}
-          <DropOffPointManager trip={trip} />
+          <div className="trip-details-card">
+            <DropOffPointManager trip={trip} />
+          </div>
 
           {/* Driver Information */}
-          <Card className="material-shadow">
+          <Card className="material-shadow trip-details-card">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <User className="h-5 w-5 mr-2" />
                 Driver Information
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-600">Driver Name</p>
-                    <p className="font-medium">{driver?.name || "Not specified"}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Driver Contact</p>
-                    <p className="font-medium">{driver?.contact || "Not specified"}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Assistant Name</p>
-                    <p className="font-medium">{driver?.assistantName || "No assistant"}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Assistant Contact</p>
-                    <p className="font-medium">{driver?.assistantContact || "No assistant"}</p>
-                  </div>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">Driver Name</p>
+                  <p className="font-medium">{driver?.name || "Not specified"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">Driver Contact</p>
+                  <p className="font-medium">{driver?.contact || "Not specified"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">Assistant Name</p>
+                  <p className="font-medium">{driver?.assistantName || "No assistant"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">Assistant Contact</p>
+                  <p className="font-medium">{driver?.assistantContact || "No assistant"}</p>
                 </div>
               </div>
             </CardContent>
