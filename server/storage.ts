@@ -56,7 +56,6 @@ export class DatabaseStorage implements IStorage {
       .values({
         ...insertTrip,
         revenue: "0",
-        driverName: "Driver",
         turnsCount: 0,
       })
       .returning();
@@ -87,7 +86,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getRecentTrips(limit: number = 10): Promise<Trip[]> {
-    return await db.select().from(trips).orderBy(desc(trips.startTime)).limit(limit);
+    return await db.select().from(trips).orderBy(desc(trips.createdAt)).limit(limit);
   }
 
   async createPassengerEvent(insertEvent: InsertPassengerEvent): Promise<PassengerEvent> {

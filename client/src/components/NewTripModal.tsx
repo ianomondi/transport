@@ -9,12 +9,13 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useGeolocation } from "@/hooks/useGeolocation";
-import { Play, X, User, MapPin, Route } from "lucide-react";
+import { Play, X, User, MapPin, Route, Car } from "lucide-react";
 import { z } from "zod";
 import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import type { Driver } from "@shared/schema";
+import type { Vehicle } from "@shared/vehicles";
 
 interface NewTripModalProps {
   isOpen: boolean;
@@ -48,6 +49,12 @@ export function NewTripModal({ isOpen, onClose }: NewTripModalProps) {
     queryKey: ['/api/drivers/active'],
     queryFn: () => fetch('/api/drivers/active').then(res => res.json()) as Promise<Driver[]>,
   });
+
+  // Fetch available vehicles
+  const { data: vehicles = [] } = useQuery({
+    queryKey: ['/api/vehicles/available'],
+    queryFn: () => fetch('/api/vehicles/available').then(res => res.json()) as Promise<Vehicle[]>,
+  });
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -57,6 +64,7 @@ export function NewTripModal({ isOpen, onClose }: NewTripModalProps) {
       initialPassengers: 0,
       currentLocation: null,
       driverId: undefined,
+      vehicleNumber: "",
     },
   });
 
@@ -70,8 +78,8 @@ export function NewTripModal({ isOpen, onClose }: NewTripModalProps) {
       queryClient.invalidateQueries({ queryKey: ['/api/trips/active'] });
       queryClient.invalidateQueries({ queryKey: ['/api/trips/recent'] });
       toast({
-        title: "Trip Started",
-        description: "Your trip has been started with automatic drop-off points",
+        title: "Trip Created",
+        description: "Your trip has been created with automatic drop-off points. Start it when ready.",
       });
       form.reset();
       setSelectedOrigin("");
@@ -191,7 +199,10 @@ export function NewTripModal({ isOpen, onClose }: NewTripModalProps) {
               name="driverId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Driver</FormLabel>
+                  <FormLabel className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Driver
+                  </FormLabel>
                   <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
                     <FormControl>
                       <SelectTrigger>
@@ -204,6 +215,38 @@ export function NewTripModal({ isOpen, onClose }: NewTripModalProps) {
                           <div className="flex items-center space-x-2">
                             <User className="h-4 w-4" />
                             <span>{driver.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="vehicleNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <Car className="h-4 w-4" />
+                    Vehicle
+                  </FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a vehicle" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {vehicles.map((vehicle) => (
+                        <SelectItem key={vehicle.id} value={vehicle.number}>
+                          <div className="flex items-center space-x-2">
+                            <Car className="h-4 w-4" />
+                            <span>{vehicle.number}</span>
+                            <span className="text-xs text-gray-500">({vehicle.type} - {vehicle.capacity} seats)</span>
                           </div>
                         </SelectItem>
                       ))}
@@ -227,7 +270,7 @@ export function NewTripModal({ isOpen, onClose }: NewTripModalProps) {
               disabled={createTripMutation.isPending}
             >
               <Play className="h-4 w-4 mr-2" />
-              {createTripMutation.isPending ? "Starting..." : "Start Trip"}
+              {createTripMutation.isPending ? "Creating..." : "Create Trip"}
             </Button>
           </form>
         </Form>
