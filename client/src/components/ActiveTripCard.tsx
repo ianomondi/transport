@@ -72,8 +72,8 @@ export function ActiveTripCard() {
           
           <div className="passenger-counter mt-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm opacity-90">Current Passengers</span>
-              <span className="text-2xl font-bold">{activeTrip.currentPassengers}</span>
+              <span className="text-sm opacity-90">Passengers</span>
+              <span className="text-2xl font-bold">{activeTrip.initialPassengers}</span>
             </div>
           </div>
         </CardContent>
