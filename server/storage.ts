@@ -26,6 +26,10 @@ export interface IStorage {
   getTodayAnalytics(): Promise<Analytics | undefined>;
   updateAnalytics(date: Date, data: Partial<Analytics>): Promise<Analytics>;
   getAnalyticsByDateRange(startDate: Date, endDate: Date): Promise<Analytics[]>;
+  calculateRealTimeAnalytics(): Promise<Analytics>;
+  getHourlyPassengerFlow(): Promise<{ hour: number; passengers: number }[]>;
+  getPopularRoutes(): Promise<{ route: string; count: number; avgPassengers: number }[]>;
+  getDriverPerformance(): Promise<{ driverId: number; driverName: string; trips: number; passengers: number; revenue: number }[]>;
   
   // Queue management operations
   addToQueue(queue: InsertDestinationQueue): Promise<DestinationQueue>;
@@ -143,19 +147,146 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTodayAnalytics(): Promise<Analytics | undefined> {
+    // Get real-time calculated analytics instead of stored ones
+    return await this.calculateRealTimeAnalytics();
+  }
+
+  async calculateRealTimeAnalytics(): Promise<Analytics> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const [analyticsData] = await db.select().from(analytics).where(eq(analytics.date, today));
-    return analyticsData || undefined;
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Get today's completed trips
+    const completedTrips = await db
+      .select()
+      .from(trips)
+      .where(
+        sql`${trips.startTime} >= ${today} AND ${trips.startTime} < ${tomorrow} AND ${trips.status} = 'completed'`
+      );
+
+    // Calculate totals
+    const totalTrips = completedTrips.length;
+    const totalPassengers = completedTrips.reduce((sum, trip) => sum + (trip.currentPassengers || 0), 0);
+    const totalDistance = completedTrips.reduce((sum, trip) => sum + parseFloat(trip.totalDistance || "0"), 0);
+    const averagePassengersPerTrip = totalTrips > 0 ? totalPassengers / totalTrips : 0;
+
+    // Get hourly data
+    const hourlyData = await this.getHourlyPassengerFlow();
+
+    return {
+      id: 0,
+      date: today,
+      totalTrips,
+      totalPassengers,
+      totalDistance: totalDistance.toFixed(2),
+      averagePassengersPerTrip: averagePassengersPerTrip.toFixed(2),
+      hourlyData
+    };
+  }
+
+  async getHourlyPassengerFlow(): Promise<{ hour: number; passengers: number }[]> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Get trips started today
+    const todayTrips = await db
+      .select()
+      .from(trips)
+      .where(
+        sql`${trips.startTime} >= ${today} AND ${trips.startTime} < ${tomorrow}`
+      );
+
+    // Group by hour
+    const hourlyFlow: { hour: number; passengers: number }[] = [];
+    for (let hour = 0; hour < 24; hour++) {
+      const hourStart = new Date(today);
+      hourStart.setHours(hour);
+      const hourEnd = new Date(today);
+      hourEnd.setHours(hour + 1);
+
+      const hourTrips = todayTrips.filter(trip => {
+        if (!trip.startTime) return false;
+        const tripTime = new Date(trip.startTime);
+        return tripTime >= hourStart && tripTime < hourEnd;
+      });
+
+      const passengers = hourTrips.reduce((sum, trip) => sum + (trip.currentPassengers || 0), 0);
+      hourlyFlow.push({ hour, passengers });
+    }
+
+    return hourlyFlow;
+  }
+
+  async getPopularRoutes(): Promise<{ route: string; count: number; avgPassengers: number }[]> {
+    const completedTrips = await db
+      .select()
+      .from(trips)
+      .where(eq(trips.status, 'completed'));
+
+    // Group by route
+    const routeMap = new Map<string, { count: number; totalPassengers: number }>();
+    
+    completedTrips.forEach(trip => {
+      const route = `${trip.origin} → ${trip.destination}`;
+      const current = routeMap.get(route) || { count: 0, totalPassengers: 0 };
+      current.count++;
+      current.totalPassengers += trip.currentPassengers || 0;
+      routeMap.set(route, current);
+    });
+
+    return Array.from(routeMap.entries())
+      .map(([route, data]) => ({
+        route,
+        count: data.count,
+        avgPassengers: data.count > 0 ? data.totalPassengers / data.count : 0
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+  }
+
+  async getDriverPerformance(): Promise<{ driverId: number; driverName: string; trips: number; passengers: number; revenue: number }[]> {
+    const completedTrips = await db
+      .select()
+      .from(trips)
+      .where(eq(trips.status, 'completed'));
+
+    const allDrivers = await this.getDrivers();
+    
+    // Group by driver
+    const driverMap = new Map<number, { trips: number; passengers: number; revenue: number }>();
+    
+    completedTrips.forEach(trip => {
+      if (!trip.driverId) return;
+      const current = driverMap.get(trip.driverId) || { trips: 0, passengers: 0, revenue: 0 };
+      current.trips++;
+      current.passengers += trip.currentPassengers || 0;
+      current.revenue += parseFloat(trip.revenue || "0");
+      driverMap.set(trip.driverId, current);
+    });
+
+    return allDrivers
+      .map(driver => {
+        const performance = driverMap.get(driver.id) || { trips: 0, passengers: 0, revenue: 0 };
+        return {
+          driverId: driver.id,
+          driverName: driver.name,
+          ...performance
+        };
+      })
+      .filter(perf => perf.trips > 0)
+      .sort((a, b) => b.trips - a.trips);
   }
 
   async updateAnalytics(date: Date, data: Partial<Analytics>): Promise<Analytics> {
-    const existing = await this.getTodayAnalytics();
-    if (existing) {
+    const existing = await db.select().from(analytics).where(eq(analytics.date, date));
+    if (existing.length > 0) {
       const [updated] = await db
         .update(analytics)
         .set(data)
-        .where(eq(analytics.id, existing.id))
+        .where(eq(analytics.id, existing[0].id))
         .returning();
       return updated;
     } else {

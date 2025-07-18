@@ -443,6 +443,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/analytics/routes', async (req, res) => {
+    try {
+      const routes = await storage.getPopularRoutes();
+      res.json(routes);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch route analytics' });
+    }
+  });
+
+  app.get('/api/analytics/drivers', async (req, res) => {
+    try {
+      const performance = await storage.getDriverPerformance();
+      res.json(performance);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch driver performance' });
+    }
+  });
+
+  app.get('/api/analytics/hourly', async (req, res) => {
+    try {
+      const hourlyFlow = await storage.getHourlyPassengerFlow();
+      res.json(hourlyFlow);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch hourly flow' });
+    }
+  });
+
   app.get('/api/analytics/range', async (req, res) => {
     try {
       const startDate = new Date(req.query.start as string);
