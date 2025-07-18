@@ -1,17 +1,20 @@
 import { useParams, useLocation } from "wouter";
-import { ArrowLeft, MapPin, Clock, Users, DollarSign, Navigation, User } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Users, DollarSign, Navigation, User, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TripStatusBadge } from "@/components/TripStatusBadge";
 import { DropOffPointManager } from "@/components/DropOffPointManager";
+import { NewTripModal } from "@/components/NewTripModal";
 import { useQuery } from "@tanstack/react-query";
 import { formatTime, formatDate, formatDistance } from "@/lib/utils";
+import { useState } from "react";
 import type { Trip } from "@shared/schema";
 
 export default function TripDetails() {
   const params = useParams();
   const [, setLocation] = useLocation();
   const tripId = params.id;
+  const [isNewTripModalOpen, setIsNewTripModalOpen] = useState(false);
 
   const { data: trip, isLoading, error } = useQuery<Trip>({
     queryKey: ['/api/trips', tripId],
@@ -97,7 +100,16 @@ export default function TripDetails() {
 
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Trip #{trip.id}</h1>
-          <TripStatusBadge status={trip.status} />
+          <div className="flex items-center space-x-3">
+            <Button
+              onClick={() => setIsNewTripModalOpen(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Play className="h-4 w-4 mr-2" />
+              Start New Trip
+            </Button>
+            <TripStatusBadge status={trip.status} />
+          </div>
         </div>
 
         <div className="space-y-6">
@@ -318,6 +330,11 @@ export default function TripDetails() {
           )}
         </div>
       </div>
+
+      <NewTripModal 
+        isOpen={isNewTripModalOpen}
+        onClose={() => setIsNewTripModalOpen(false)}
+      />
     </div>
   );
 }
