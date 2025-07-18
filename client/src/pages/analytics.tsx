@@ -82,48 +82,54 @@ export default function Analytics() {
           ) : (
             <div className="space-y-6">
               {/* Key Performance Indicators */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Card className="material-shadow">
-                  <CardContent className="p-4 text-center">
-                    <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg mx-auto mb-2">
-                      <Route className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <p className="text-2xl font-bold text-blue-600">{analytics?.totalTrips || 0}</p>
-                    <p className="text-sm text-gray-600">Trips Today</p>
-                  </CardContent>
-                </Card>
+              <div className="space-y-4">
+                {/* Top Row: Trips and Passengers */}
+                <div className="grid grid-cols-2 gap-4">
+                  <Card className="material-shadow">
+                    <CardContent className="p-4 text-center">
+                      <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg mx-auto mb-2">
+                        <Route className="h-6 w-6 text-blue-600" />
+                      </div>
+                      <p className="text-2xl font-bold text-blue-600">{analytics?.totalTrips || 0}</p>
+                      <p className="text-sm text-gray-600">Trips Today</p>
+                    </CardContent>
+                  </Card>
 
-                <Card className="material-shadow">
-                  <CardContent className="p-4 text-center">
-                    <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-lg mx-auto mb-2">
-                      <Users className="h-6 w-6 text-green-600" />
-                    </div>
-                    <p className="text-2xl font-bold text-green-600">{analytics?.totalPassengers || 0}</p>
-                    <p className="text-sm text-gray-600">Passengers</p>
-                  </CardContent>
-                </Card>
+                  <Card className="material-shadow">
+                    <CardContent className="p-4 text-center">
+                      <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-lg mx-auto mb-2">
+                        <Users className="h-6 w-6 text-green-600" />
+                      </div>
+                      <p className="text-2xl font-bold text-green-600">{analytics?.totalPassengers || 0}</p>
+                      <p className="text-sm text-gray-600">Passengers</p>
+                    </CardContent>
+                  </Card>
+                </div>
 
-                <Card className="material-shadow">
-                  <CardContent className="p-4 text-center">
-                    <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-lg mx-auto mb-2">
-                      <MapPin className="h-6 w-6 text-orange-600" />
-                    </div>
-                    <p className="text-2xl font-bold text-orange-600">
-                      {parseFloat(analytics?.totalDistance || "0").toFixed(1)}
-                    </p>
-                    <p className="text-sm text-gray-600">Miles</p>
-                  </CardContent>
-                </Card>
+                {/* Bottom Row: Miles and Revenue */}
+                <div className="grid grid-cols-2 gap-4">
+                  <Card className="material-shadow">
+                    <CardContent className="p-4 text-center">
+                      <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-lg mx-auto mb-2">
+                        <MapPin className="h-6 w-6 text-orange-600" />
+                      </div>
+                      <p className="text-2xl font-bold text-orange-600">
+                        {parseFloat(analytics?.totalDistance || "0").toFixed(1)}
+                      </p>
+                      <p className="text-sm text-gray-600">Miles</p>
+                    </CardContent>
+                  </Card>
 
-                <Card className="material-shadow">
-                  <CardContent className="p-4 text-center">
-                    <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-lg mx-auto mb-2">
-                      <DollarSign className="h-6 w-6 text-purple-600" />
-                    </div>
-                    <p className="text-2xl font-bold text-purple-600">${totalRevenue.toFixed(0)}</p>
-                    <p className="text-sm text-gray-600">Revenue</p>
-                  </CardContent>
-                </Card>
+                  <Card className="material-shadow">
+                    <CardContent className="p-4 text-center">
+                      <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-lg mx-auto mb-2">
+                        <DollarSign className="h-6 w-6 text-purple-600" />
+                      </div>
+                      <p className="text-2xl font-bold text-purple-600">${totalRevenue.toFixed(0)}</p>
+                      <p className="text-sm text-gray-600">Revenue</p>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
 
               {/* Hourly Passenger Flow Chart */}
