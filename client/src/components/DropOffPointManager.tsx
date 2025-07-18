@@ -104,7 +104,7 @@ export function DropOffPointManager({ trip }: DropOffPointManagerProps) {
           </div>
         </div>
         
-        <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-3">
           <div className="bg-white/70 rounded-lg p-3 border border-blue-100">
             <div className="flex items-center space-x-2 mb-1">
               <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
