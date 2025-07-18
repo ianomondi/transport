@@ -1,5 +1,5 @@
 import { useParams, useLocation } from "wouter";
-import { ArrowLeft, MapPin, Clock, Users, DollarSign, Navigation, User, Play } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Users, DollarSign, Navigation, User, Play, StopCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TripStatusBadge } from "@/components/TripStatusBadge";
@@ -52,6 +52,31 @@ export default function TripDetails() {
       toast({
         title: "Error",
         description: "Failed to start trip",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // End trip mutation
+  const endTripMutation = useMutation({
+    mutationFn: (tripId: number) => 
+      apiRequest('PATCH', `/api/trips/${tripId}`, {
+        status: 'completed',
+        endTime: new Date()
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/trips', tripId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/trips/active'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/trips/recent'] });
+      toast({
+        title: "Trip Ended",
+        description: "Trip has been completed successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to end trip",
         variant: "destructive",
       });
     },
@@ -137,14 +162,28 @@ export default function TripDetails() {
             <h1 className="text-2xl font-bold text-gray-900">Trip #{trip.id}</h1>
             <TripStatusBadge status={trip.status} />
           </div>
-          <Button
-            onClick={handleStartTrip}
-            disabled={createTripMutation.isPending}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Play className="h-4 w-4 mr-2" />
-            {createTripMutation.isPending ? "Starting..." : "Start Same Trip"}
-          </Button>
+          <div className="flex space-x-3">
+            <Button
+              onClick={handleStartTrip}
+              disabled={createTripMutation.isPending}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Play className="h-4 w-4 mr-2" />
+              {createTripMutation.isPending ? "Starting..." : "Start Same Trip"}
+            </Button>
+            
+            {trip.status === 'active' && (
+              <Button
+                onClick={() => endTripMutation.mutate(trip.id)}
+                disabled={endTripMutation.isPending}
+                variant="destructive"
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                <StopCircle className="h-4 w-4 mr-2" />
+                {endTripMutation.isPending ? "Ending..." : "End Trip"}
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="space-y-6">

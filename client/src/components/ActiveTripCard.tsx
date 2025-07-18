@@ -1,39 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { StopCircle } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import type { Trip } from "@shared/schema";
 
 export function ActiveTripCard() {
-  const { toast } = useToast();
   const { data: activeTrip, isLoading } = useQuery<Trip>({
     queryKey: ['/api/trips/active'],
     refetchInterval: 5000,
-  });
-
-  const endTripMutation = useMutation({
-    mutationFn: (tripId: number) => 
-      apiRequest('PATCH', `/api/trips/${tripId}`, {
-        status: 'completed',
-        endTime: new Date()
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/trips/active'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/trips/recent'] });
-      toast({
-        title: "Trip Ended",
-        description: "Trip has been completed successfully",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to end trip",
-        variant: "destructive",
-      });
-    },
   });
 
   if (isLoading) {
@@ -109,20 +81,6 @@ export function ActiveTripCard() {
               </span>
             </div>
           </div>
-
-          {activeTrip.status === 'active' && (
-            <div className="mt-4">
-              <Button 
-                onClick={() => endTripMutation.mutate(activeTrip.id)}
-                disabled={endTripMutation.isPending}
-                className="w-full bg-red-600 hover:bg-red-700 text-white"
-                variant="destructive"
-              >
-                <StopCircle className="h-4 w-4 mr-2" />
-                {endTripMutation.isPending ? "Ending..." : "End Trip"}
-              </Button>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>
