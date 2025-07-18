@@ -132,19 +132,19 @@ export default function TripDetails() {
           Back to Trips
         </Button>
 
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Trip #{trip.id}</h1>
-          <div className="flex items-center space-x-3">
-            <Button
-              onClick={handleStartTrip}
-              disabled={createTripMutation.isPending}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <Play className="h-4 w-4 mr-2" />
-              {createTripMutation.isPending ? "Starting..." : "Start Same Trip"}
-            </Button>
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h1 className="text-2xl font-bold text-gray-900">Trip #{trip.id}</h1>
             <TripStatusBadge status={trip.status} />
           </div>
+          <Button
+            onClick={handleStartTrip}
+            disabled={createTripMutation.isPending}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Play className="h-4 w-4 mr-2" />
+            {createTripMutation.isPending ? "Starting..." : "Start Same Trip"}
+          </Button>
         </div>
 
         <div className="space-y-6">
