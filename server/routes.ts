@@ -14,6 +14,16 @@ interface WebSocketClient extends WebSocket {
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   
+  // Test database connection
+  try {
+    console.log('Testing database connection...');
+    await storage.getTodayAnalytics();
+    console.log('Database connection successful');
+  } catch (error) {
+    console.error('Database connection failed:', error);
+    // Don't exit, just log the error
+  }
+  
   // WebSocket server for real-time updates
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
   const clients = new Map<string, WebSocketClient>();
