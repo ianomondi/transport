@@ -67,8 +67,8 @@ export function NewTripModal({ isOpen, onClose }: NewTripModalProps) {
       queryClient.invalidateQueries({ queryKey: ['/api/trips/active'] });
       queryClient.invalidateQueries({ queryKey: ['/api/trips/recent'] });
       toast({
-        title: "Trip Started",
-        description: "Your trip has been started with automatic drop-off points",
+        title: "Trip Added",
+        description: "Your trip has been added with automatic drop-off points",
       });
       form.reset();
       setSelectedOrigin("");
@@ -77,7 +77,7 @@ export function NewTripModal({ isOpen, onClose }: NewTripModalProps) {
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to start trip",
+        description: "Failed to add trip",
         variant: "destructive",
       });
     },
@@ -91,7 +91,7 @@ export function NewTripModal({ isOpen, onClose }: NewTripModalProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Start New Trip</DialogTitle>
+          <DialogTitle>Add New Trip</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>
@@ -201,7 +201,7 @@ export function NewTripModal({ isOpen, onClose }: NewTripModalProps) {
               disabled={createTripMutation.isPending}
             >
               <Play className="h-4 w-4 mr-2" />
-              {createTripMutation.isPending ? "Starting..." : "Start Trip"}
+              {createTripMutation.isPending ? "Adding..." : "Add Trip"}
             </Button>
           </form>
         </Form>
