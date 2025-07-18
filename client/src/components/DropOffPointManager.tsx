@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Users, DollarSign, Plus, Minus, Navigation, TrendingUp, StopCircle } from "lucide-react";
+import { MapPin, Users, DollarSign, Plus, Minus, Navigation, TrendingUp, StopCircle, UserPlus } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { PassengerPickupModal } from "./PassengerPickupModal";
 import type { Trip } from "@shared/schema";
 
 interface DropOffPoint {
@@ -25,6 +26,8 @@ export function DropOffPointManager({ trip }: DropOffPointManagerProps) {
   const [localDropOffPoints, setLocalDropOffPoints] = useState<DropOffPoint[]>(
     trip.dropOffPoints || []
   );
+  const [pickupModalOpen, setPickupModalOpen] = useState(false);
+  const [selectedPickupLocation, setSelectedPickupLocation] = useState("");
 
   const updateTripMutation = useMutation({
     mutationFn: (updates: Partial<Trip>) => 
@@ -162,6 +165,21 @@ export function DropOffPointManager({ trip }: DropOffPointManagerProps) {
                 </div>
                 
                 <div className="flex items-center space-x-3 ml-4">
+                  {trip.status === 'active' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedPickupLocation(point.name);
+                        setPickupModalOpen(true);
+                      }}
+                      className="flex items-center gap-1 px-3 py-1 text-xs bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:border-green-300 transition-all duration-200"
+                    >
+                      <UserPlus className="h-3 w-3" />
+                      Pick Up
+                    </Button>
+                  )}
+                  
                   <div className="flex flex-col items-center space-y-2">
                     <Button
                       variant="outline"
@@ -228,6 +246,19 @@ export function DropOffPointManager({ trip }: DropOffPointManagerProps) {
           </div>
         )}
       </CardContent>
+      
+      {/* Passenger Pickup Modal */}
+      <PassengerPickupModal
+        isOpen={pickupModalOpen}
+        onClose={() => {
+          setPickupModalOpen(false);
+          setSelectedPickupLocation("");
+        }}
+        tripId={trip.id}
+        tripOrigin={trip.origin}
+        tripDestination={trip.destination}
+        currentLocation={selectedPickupLocation}
+      />
     </Card>
   );
 }

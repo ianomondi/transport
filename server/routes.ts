@@ -2,9 +2,10 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertTripSchema, insertPassengerEventSchema, insertLocationSchema, insertDestinationQueueSchema, insertExpenseSchema, insertDriverSchema, insertVehicleSchema } from "@shared/schema";
+import { insertTripSchema, insertPassengerEventSchema, insertLocationSchema, insertDestinationQueueSchema, insertExpenseSchema, insertDriverSchema, insertVehicleSchema, passengerPickupSchema } from "@shared/schema";
 import { generateDailyReport, sendDailyReport } from "./email-reporting";
 import { z } from "zod";
+import { calculateFare, getValidDropOffLocations } from "./route-mapping";
 
 interface WebSocketClient extends WebSocket {
   isAlive: boolean;
@@ -142,6 +143,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(destinations);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch destinations' });
+    }
+  });
+
+  // Get valid drop-off locations for passenger pickup
+  app.get('/api/routes/valid-dropoffs', async (req, res) => {
+    try {
+      const { pickupLocation, origin, destination } = req.query;
+      
+      if (!pickupLocation || !origin || !destination) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+      
+      const validLocations = getValidDropOffLocations(
+        pickupLocation as string, 
+        origin as string, 
+        destination as string
+      );
+      
+      res.json(validLocations);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch valid drop-off locations' });
+    }
+  });
+
+  // Calculate fare for passenger pickup
+  app.get('/api/routes/calculate-fare', async (req, res) => {
+    try {
+      const { pickupLocation, dropOffLocation, origin, destination } = req.query;
+      
+      if (!pickupLocation || !dropOffLocation || !origin || !destination) {
+        return res.status(400).json({ error: 'Missing required parameters' });
+      }
+      
+      const fare = calculateFare(
+        pickupLocation as string,
+        dropOffLocation as string,
+        origin as string,
+        destination as string
+      );
+      
+      res.json({ fare });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to calculate fare' });
     }
   });
 
@@ -385,6 +429,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(event);
     } catch (error) {
       res.status(400).json({ error: error instanceof z.ZodError ? error.errors : 'Invalid event data' });
+    }
+  });
+
+  // Passenger pickup at drop-off point endpoint
+  app.post('/api/trips/:id/pickup-passenger', async (req, res) => {
+    try {
+      const tripId = parseInt(req.params.id);
+      const pickupData = passengerPickupSchema.parse(req.body);
+      
+      // Verify trip is active
+      const trip = await storage.getTrip(tripId);
+      if (!trip || trip.status !== 'active') {
+        return res.status(400).json({ error: 'Trip is not active' });
+      }
+      
+      // Create passenger pickup event
+      const event = await storage.createPassengerEvent({
+        tripId,
+        eventType: 'pickup_at_dropoff',
+        passengerCount: pickupData.passengerCount,
+        location: null, // Will be filled based on pickup location
+        pickupLocation: pickupData.pickupLocation,
+        dropOffLocation: pickupData.dropOffLocation,
+        fareAmount: pickupData.fareAmount.toString()
+      });
+      
+      // Add new drop-off point to trip if it doesn't exist
+      let updatedDropOffPoints = [...(trip.dropOffPoints || [])];
+      const existingPointIndex = updatedDropOffPoints.findIndex(
+        point => point.name === pickupData.dropOffLocation
+      );
+      
+      if (existingPointIndex >= 0) {
+        // Update existing drop-off point
+        updatedDropOffPoints[existingPointIndex] = {
+          ...updatedDropOffPoints[existingPointIndex],
+          passengerCount: updatedDropOffPoints[existingPointIndex].passengerCount + pickupData.passengerCount,
+          totalRevenue: updatedDropOffPoints[existingPointIndex].totalRevenue + pickupData.fareAmount
+        };
+      } else {
+        // Add new drop-off point
+        updatedDropOffPoints.push({
+          name: pickupData.dropOffLocation,
+          coordinates: { lat: 0, lng: 0 }, // Default coordinates
+          passengerCount: pickupData.passengerCount,
+          farePerPassenger: pickupData.fareAmount / pickupData.passengerCount,
+          totalRevenue: pickupData.fareAmount
+        });
+      }
+      
+      // Update trip with new passenger count and revenue
+      const newTotalRevenue = parseFloat(trip.revenue || "0") + pickupData.fareAmount;
+      const newPassengerCount = trip.currentPassengers + pickupData.passengerCount;
+      
+      const updatedTrip = await storage.updateTrip(tripId, {
+        currentPassengers: newPassengerCount,
+        revenue: newTotalRevenue.toString(),
+        dropOffPoints: updatedDropOffPoints
+      });
+      
+      // Broadcast pickup event to all clients
+      broadcastToClients({
+        type: 'passenger_pickup',
+        tripId,
+        event,
+        newPassengerCount,
+        newRevenue: newTotalRevenue,
+        message: `${pickupData.passengerCount} passenger(s) picked up at ${pickupData.pickupLocation}`
+      });
+      
+      res.json({ 
+        event, 
+        updatedTrip,
+        message: `Successfully picked up ${pickupData.passengerCount} passenger(s) at ${pickupData.pickupLocation}`
+      });
+    } catch (error) {
+      console.error('Passenger pickup error:', error);
+      res.status(400).json({ 
+        error: error instanceof z.ZodError ? error.errors : 'Failed to pickup passenger' 
+      });
     }
   });
 

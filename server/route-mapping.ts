@@ -180,3 +180,97 @@ export function getAvailableDestinations(origin: string): string[] {
     .filter(route => route.origin.toLowerCase() === origin.toLowerCase())
     .map(route => route.destination);
 }
+
+// Calculate fare between two points on a route
+export function calculateFare(pickupLocation: string, dropOffLocation: string, origin: string, destination: string): number {
+  const route = ROUTE_MAPPINGS.find(
+    mapping => 
+      mapping.origin.toLowerCase() === origin.toLowerCase() && 
+      mapping.destination.toLowerCase() === destination.toLowerCase()
+  );
+  
+  if (!route) {
+    return 0; // No route found
+  }
+  
+  // Find pickup and drop-off points in the route
+  const pickupIndex = route.dropOffPoints.findIndex(point => point.name.toLowerCase() === pickupLocation.toLowerCase());
+  const dropOffIndex = route.dropOffPoints.findIndex(point => point.name.toLowerCase() === dropOffLocation.toLowerCase());
+  
+  // If pickup location is not in the drop-off points, check if it's the origin or destination
+  let actualPickupIndex = pickupIndex;
+  if (pickupIndex === -1) {
+    if (pickupLocation.toLowerCase() === origin.toLowerCase()) {
+      actualPickupIndex = -1; // Start of route
+    } else if (pickupLocation.toLowerCase() === destination.toLowerCase()) {
+      actualPickupIndex = route.dropOffPoints.length; // End of route
+    } else {
+      return 0; // Invalid pickup location
+    }
+  }
+  
+  let actualDropOffIndex = dropOffIndex;
+  if (dropOffIndex === -1) {
+    if (dropOffLocation.toLowerCase() === destination.toLowerCase()) {
+      actualDropOffIndex = route.dropOffPoints.length; // End of route
+    } else {
+      return 0; // Invalid drop-off location
+    }
+  }
+  
+  // Calculate fare based on distance (number of stops)
+  if (actualDropOffIndex <= actualPickupIndex) {
+    return 0; // Can't go backwards
+  }
+  
+  // If picking up at origin, fare is the fare to the drop-off point
+  if (actualPickupIndex === -1) {
+    if (actualDropOffIndex < route.dropOffPoints.length) {
+      return route.dropOffPoints[actualDropOffIndex].farePerPassenger;
+    } else {
+      // Going to destination, calculate cumulative fare
+      return route.dropOffPoints[route.dropOffPoints.length - 1].farePerPassenger;
+    }
+  }
+  
+  // If picking up at a drop-off point, calculate remaining fare
+  if (actualDropOffIndex < route.dropOffPoints.length) {
+    const pickupFare = route.dropOffPoints[actualPickupIndex].farePerPassenger;
+    const dropOffFare = route.dropOffPoints[actualDropOffIndex].farePerPassenger;
+    return Math.max(0, dropOffFare - pickupFare);
+  } else {
+    // Going to final destination
+    const pickupFare = route.dropOffPoints[actualPickupIndex].farePerPassenger;
+    const finalFare = route.dropOffPoints[route.dropOffPoints.length - 1].farePerPassenger;
+    return Math.max(0, finalFare - pickupFare);
+  }
+}
+
+// Get valid drop-off locations for a pickup point
+export function getValidDropOffLocations(pickupLocation: string, origin: string, destination: string): string[] {
+  const route = ROUTE_MAPPINGS.find(
+    mapping => 
+      mapping.origin.toLowerCase() === origin.toLowerCase() && 
+      mapping.destination.toLowerCase() === destination.toLowerCase()
+  );
+  
+  if (!route) {
+    return [];
+  }
+  
+  const pickupIndex = route.dropOffPoints.findIndex(point => point.name.toLowerCase() === pickupLocation.toLowerCase());
+  
+  // If pickup is at origin, all drop-off points are valid
+  if (pickupLocation.toLowerCase() === origin.toLowerCase()) {
+    return [...route.dropOffPoints.map(point => point.name), destination];
+  }
+  
+  // If pickup is at a drop-off point, only later points are valid
+  if (pickupIndex >= 0) {
+    const validPoints = route.dropOffPoints.slice(pickupIndex + 1).map(point => point.name);
+    validPoints.push(destination); // Always include final destination
+    return validPoints;
+  }
+  
+  return [];
+}

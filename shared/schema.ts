@@ -30,10 +30,13 @@ export const trips = pgTable("trips", {
 export const passengerEvents = pgTable("passenger_events", {
   id: serial("id").primaryKey(),
   tripId: integer("trip_id").notNull(),
-  eventType: text("event_type").notNull(), // "board" or "alight"
+  eventType: text("event_type").notNull(), // "board", "alight", "pickup_at_dropoff"
   passengerCount: integer("passenger_count").notNull(),
   location: jsonb("location").$type<{ lat: number; lng: number }>(),
   timestamp: timestamp("timestamp").notNull().defaultNow(),
+  pickupLocation: text("pickup_location"), // Location name where passenger boarded
+  dropOffLocation: text("drop_off_location"), // Intended drop-off location
+  fareAmount: decimal("fare_amount", { precision: 10, scale: 2 }), // Fare for this passenger segment
 });
 
 export const locations = pgTable("locations", {
@@ -109,6 +112,18 @@ export const insertPassengerEventSchema = createInsertSchema(passengerEvents).pi
   eventType: true,
   passengerCount: true,
   location: true,
+  pickupLocation: true,
+  dropOffLocation: true,
+  fareAmount: true,
+});
+
+// Schema for passenger pickup at drop-off points
+export const passengerPickupSchema = z.object({
+  tripId: z.number(),
+  passengerCount: z.number().min(1),
+  pickupLocation: z.string(), // Current drop-off point where pickup happens
+  dropOffLocation: z.string(), // Where passenger wants to be dropped off
+  fareAmount: z.number().min(0), // Calculated fare for this segment
 });
 
 export const insertLocationSchema = createInsertSchema(locations).pick({
