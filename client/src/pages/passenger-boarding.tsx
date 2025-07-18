@@ -109,15 +109,14 @@ export default function PassengerBoarding() {
 
   const pickupMutation = useMutation({
     mutationFn: async (data: {
+      tripId: number;
       passengerCount: number;
       pickupLocation: string;
       dropOffLocation: string;
       fareAmount: number;
     }) => {
-      return apiRequest(`/api/trips/${tripId}/pickup-passenger`, {
-        method: "POST",
-        body: JSON.stringify(data)
-      });
+      const response = await apiRequest("POST", `/api/trips/${tripId}/pickup-passenger`, data);
+      return response.json();
     },
     onSuccess: (data) => {
       toast({
@@ -154,6 +153,7 @@ export default function PassengerBoarding() {
       for (const group of passengerGroups) {
         if (group.passengerCount > 0) {
           await pickupMutation.mutateAsync({
+            tripId: tripId,
             passengerCount: group.passengerCount,
             pickupLocation: currentLocation,
             dropOffLocation: group.dropOffLocation,
