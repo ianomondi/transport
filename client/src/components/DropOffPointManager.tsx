@@ -135,25 +135,27 @@ export function DropOffPointManager({ trip }: DropOffPointManagerProps) {
                 </div>
               </div>
               
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => updatePassengerCount(index, -1)}
-                  disabled={point.passengerCount === 0 || updateTripMutation.isPending}
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <span className="w-8 text-center font-medium">
-                  {point.passengerCount}
-                </span>
+              <div className="flex flex-col items-center space-y-1">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => updatePassengerCount(index, 1)}
                   disabled={updateTripMutation.isPending}
+                  className="w-8 h-8 p-0"
                 >
                   <Plus className="h-4 w-4" />
+                </Button>
+                <span className="text-center font-medium min-w-[24px]">
+                  {point.passengerCount}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => updatePassengerCount(index, -1)}
+                  disabled={point.passengerCount === 0 || updateTripMutation.isPending}
+                  className="w-8 h-8 p-0"
+                >
+                  <Minus className="h-4 w-4" />
                 </Button>
               </div>
             </div>
