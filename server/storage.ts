@@ -10,6 +10,7 @@ export interface IStorage {
   updateTrip(id: number, updates: Partial<Trip>): Promise<Trip | undefined>;
   getTripsByStatus(status: string): Promise<Trip[]>;
   getRecentTrips(limit?: number): Promise<Trip[]>;
+  getTripsByDateRange(startDate: Date, endDate: Date): Promise<Trip[]>;
   
   // Passenger event operations
   createPassengerEvent(event: InsertPassengerEvent): Promise<PassengerEvent>;
@@ -94,6 +95,12 @@ export class DatabaseStorage implements IStorage {
 
   async getRecentTrips(limit: number = 10): Promise<Trip[]> {
     return await db.select().from(trips).orderBy(desc(trips.startTime)).limit(limit);
+  }
+
+  async getTripsByDateRange(startDate: Date, endDate: Date): Promise<Trip[]> {
+    return await db.select().from(trips).where(
+      sql`DATE(${trips.startTime}) >= ${startDate.toISOString().split('T')[0]} AND DATE(${trips.startTime}) <= ${endDate.toISOString().split('T')[0]}`
+    ).orderBy(desc(trips.startTime));
   }
 
   async createPassengerEvent(insertEvent: InsertPassengerEvent): Promise<PassengerEvent> {

@@ -123,6 +123,7 @@ Transit Tracker is a modern web application designed for transit drivers to mana
 - July 18, 2025. Moved "End Trip" button from ActiveTripCard to trip details page as requested. The button only appears in trip details when the trip status is active, allowing users to end trips from the detailed view rather than the dashboard card.
 - July 18, 2025. Updated trip button visibility logic: "Start Trip" button only shows for non-active/non-completed trips, "End Trip" button only appears after trip is started (active status), and both buttons are hidden once trip is completed.
 - July 18, 2025. Integrated complete vehicle management system: Added vehicles table with number plate, make, model, year, and capacity fields. Created vehicle API endpoints and populated database with 5 sample vehicles. Updated trip creation modal to include vehicle selection dropdown alongside driver selection. Added comprehensive vehicle information display in trip details page showing number plate, make/model, year, and passenger capacity.
+- July 18, 2025. Fixed daily reporting functionality: Daily reports now correctly show all completed trips for the selected day instead of just one record. Added getTripsByDateRange method to storage interface and updated generateDailyReport function to use proper date-based trip filtering. Reports now display comprehensive trip summaries with accurate totals for revenue, passengers, and trip counts.
 
 ## User Preferences
 

@@ -31,14 +31,8 @@ export async function generateDailyReport(date: Date = new Date()): Promise<Dail
   endOfDay.setHours(23, 59, 59, 999);
 
   // Get trips and expenses for the day
-  const trips = await storage.getRecentTrips(100); // Get all recent trips and filter
+  const dayTrips = await storage.getTripsByDateRange(startOfDay, endOfDay);
   const expenses = await storage.getExpensesByDateRange(startOfDay, endOfDay);
-  
-  // Filter trips for the specific day
-  const dayTrips = trips.filter(trip => {
-    const tripDate = new Date(trip.startTime);
-    return tripDate >= startOfDay && tripDate <= endOfDay;
-  });
 
   // Calculate totals
   const totalRevenue = dayTrips.reduce((sum, trip) => sum + parseFloat(trip.revenue || '0'), 0);
