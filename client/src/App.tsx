@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Dashboard from "@/pages/dashboard";
 import Trips from "@/pages/trips";
 import TripDetails from "@/pages/trip-details";
+import PassengerBoarding from "@/pages/passenger-boarding";
 import Analytics from "@/pages/analytics";
 import Settings from "@/pages/settings";
 import Queue from "@/pages/queue";
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/" component={Dashboard} />
       <Route path="/trips" component={Trips} />
       <Route path="/trips/:id" component={TripDetails} />
+      <Route path="/passenger-boarding/:tripId/:pickupLocation" component={PassengerBoarding} />
       <Route path="/queue" component={Queue} />
       <Route path="/analytics" component={Analytics} />
       <Route path="/settings" component={Settings} />

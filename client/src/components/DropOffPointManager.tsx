@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +7,7 @@ import { MapPin, Users, DollarSign, Plus, Minus, Navigation, TrendingUp, StopCir
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { PassengerBoardingInterface } from "./PassengerBoardingInterface";
+
 import type { Trip } from "@shared/schema";
 
 interface DropOffPoint {
@@ -22,12 +23,11 @@ interface DropOffPointManagerProps {
 }
 
 export function DropOffPointManager({ trip }: DropOffPointManagerProps) {
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [localDropOffPoints, setLocalDropOffPoints] = useState<DropOffPoint[]>(
     trip.dropOffPoints || []
   );
-  const [pickupModalOpen, setPickupModalOpen] = useState(false);
-  const [selectedPickupLocation, setSelectedPickupLocation] = useState("");
 
   const updateTripMutation = useMutation({
     mutationFn: (updates: Partial<Trip>) => 
@@ -167,8 +167,8 @@ export function DropOffPointManager({ trip }: DropOffPointManagerProps) {
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                              setSelectedPickupLocation(point.name);
-                              setPickupModalOpen(true);
+                              const encodedLocation = encodeURIComponent(point.name);
+                              setLocation(`/passenger-boarding/${trip.id}/${encodedLocation}`);
                             }}
                             className="flex items-center gap-1 px-3 py-1 text-xs bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:border-green-300 transition-all duration-200"
                           >
@@ -249,18 +249,7 @@ export function DropOffPointManager({ trip }: DropOffPointManagerProps) {
         )}
       </CardContent>
       
-      {/* Passenger Boarding Interface */}
-      <PassengerBoardingInterface
-        isOpen={pickupModalOpen}
-        onClose={() => {
-          setPickupModalOpen(false);
-          setSelectedPickupLocation("");
-        }}
-        tripId={trip.id}
-        tripOrigin={trip.origin}
-        tripDestination={trip.destination}
-        currentLocation={selectedPickupLocation}
-      />
+
     </Card>
   );
 }
