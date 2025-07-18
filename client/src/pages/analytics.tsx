@@ -160,89 +160,86 @@ export default function Analytics() {
                 </CardContent>
               </Card>
 
-              {/* Popular Routes and Driver Performance */}
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Popular Routes */}
-                <Card className="material-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center text-lg">
-                      <MapPin className="h-5 w-5 mr-2 text-green-600" />
-                      Popular Routes
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {routes && routes.length > 0 ? (
-                      <div className="space-y-4">
-                        {routes.slice(0, 5).map((route, index) => (
-                          <div key={route.route} className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <p className="font-medium text-sm">{route.route}</p>
-                              <div className="flex items-center mt-1">
-                                <Progress 
-                                  value={(route.count / (routes[0]?.count || 1)) * 100} 
-                                  className="h-2 flex-1 mr-2"
-                                />
-                                <span className="text-xs text-gray-500">
-                                  {route.count} trips
-                                </span>
-                              </div>
+              {/* Popular Routes */}
+              <Card className="material-shadow">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-lg">
+                    <MapPin className="h-5 w-5 mr-2 text-green-600" />
+                    Popular Routes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {routes && routes.length > 0 ? (
+                    <div className="space-y-4">
+                      {routes.slice(0, 5).map((route, index) => (
+                        <div key={route.route} className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <p className="font-medium text-sm">{route.route}</p>
+                            <div className="flex items-center mt-1">
+                              <Progress 
+                                value={(route.count / (routes[0]?.count || 1)) * 100} 
+                                className="h-2 flex-1 mr-2"
+                              />
+                              <span className="text-xs text-gray-500">
+                                {route.count} trips
+                              </span>
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <Route className="h-12 w-12 mx-auto mb-2" />
-                        <p>No route data available</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <Route className="h-12 w-12 mx-auto mb-2" />
+                      <p>No route data available</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-                {/* Top Drivers */}
-                <Card className="material-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center text-lg">
-                      <Award className="h-5 w-5 mr-2 text-yellow-600" />
-                      Top Performers
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {drivers && drivers.length > 0 ? (
-                      <div className="space-y-4">
-                        {drivers.slice(0, 5).map((driver, index) => (
-                          <div key={driver.driverId} className="flex items-center justify-between">
-                            <div className="flex items-center">
-                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium mr-3 ${
-                                index === 0 ? 'bg-yellow-100 text-yellow-800' :
-                                index === 1 ? 'bg-gray-100 text-gray-800' :
-                                index === 2 ? 'bg-orange-100 text-orange-800' :
-                                'bg-blue-100 text-blue-800'
-                              }`}>
-                                {index + 1}
-                              </div>
-                              <div>
-                                <p className="font-medium text-sm">{driver.driverName}</p>
-                                <p className="text-xs text-gray-500">
-                                  {driver.trips} trips • {driver.passengers} passengers
-                                </p>
-                              </div>
+              {/* Top Drivers */}
+              <Card className="material-shadow">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-lg">
+                    <Award className="h-5 w-5 mr-2 text-yellow-600" />
+                    Top Performers
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {drivers && drivers.length > 0 ? (
+                    <div className="space-y-4">
+                      {drivers.slice(0, 5).map((driver, index) => (
+                        <div key={driver.driverId} className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium mr-3 ${
+                              index === 0 ? 'bg-yellow-100 text-yellow-800' :
+                              index === 1 ? 'bg-gray-100 text-gray-800' :
+                              index === 2 ? 'bg-orange-100 text-orange-800' :
+                              'bg-blue-100 text-blue-800'
+                            }`}>
+                              {index + 1}
                             </div>
-                            <Badge variant="outline" className="text-green-600 border-green-300">
-                              ${driver.revenue.toFixed(0)}
-                            </Badge>
+                            <div>
+                              <p className="font-medium text-sm">{driver.driverName}</p>
+                              <p className="text-xs text-gray-500">
+                                {driver.trips} trips • {driver.passengers} passengers
+                              </p>
+                            </div>
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <Star className="h-12 w-12 mx-auto mb-2" />
-                        <p>No driver data available</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
+                          <Badge variant="outline" className="text-green-600 border-green-300">
+                            ${driver.revenue.toFixed(0)}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <Star className="h-12 w-12 mx-auto mb-2" />
+                      <p>No driver data available</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
               {/* Insights and Recommendations */}
               <div className="grid md:grid-cols-2 gap-6">
