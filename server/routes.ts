@@ -51,38 +51,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
               route: [...(activeTrip.route || []), data.location]
             });
             
-            // Check if driver has reached destination and auto-end trip
-            // For demo purposes, we'll check if trip has been running for more than 30 seconds
-            const tripDuration = Date.now() - new Date(activeTrip.startTime).getTime();
-            if (tripDuration > 30000) { // 30 seconds for demo
-              // Auto-end trip and add to queue
-              const completedTrip = await storage.updateTrip(activeTrip.id, {
-                status: 'completed',
-                endTime: new Date()
-              });
-              
-              if (completedTrip) {
-                const queueEntry = await storage.addToQueue({
-                  tripId: completedTrip.id,
-                  destination: completedTrip.destination,
-                  driverId: `driver_${clientId}`
-                });
-                
-                broadcastToClients({
-                  type: 'trip_auto_completed',
-                  trip: completedTrip,
-                  queuePosition: queueEntry,
-                  message: 'Trip automatically ended - destination reached'
-                });
-              }
-            } else {
-              // Broadcast normal location update
-              broadcastToClients({
-                type: 'trip_location_update',
-                tripId: activeTrip.id,
-                location: data.location
-              });
-            }
+            // Broadcast normal location update
+            broadcastToClients({
+              type: 'trip_location_update',
+              tripId: activeTrip.id,
+              location: data.location
+            });
+            
+            // Auto-completion logic disabled for better user control
+            // Trips must be manually ended by the user
           }
         }
       } catch (error) {
