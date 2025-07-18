@@ -1,5 +1,5 @@
 import { useParams, useLocation } from "wouter";
-import { ArrowLeft, MapPin, Clock, Users, DollarSign, Navigation, User, Play, StopCircle } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Users, DollarSign, Navigation, User, Play, StopCircle, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TripStatusBadge } from "@/components/TripStatusBadge";
@@ -34,6 +34,13 @@ export default function TripDetails() {
     queryKey: ['/api/drivers', trip?.driverId],
     queryFn: () => fetch(`/api/drivers/${trip?.driverId}`).then(res => res.json()),
     enabled: !!trip?.driverId,
+  });
+
+  // Fetch vehicle details if trip has a vehicleId
+  const { data: vehicle } = useQuery({
+    queryKey: ['/api/vehicles', trip?.vehicleId],
+    queryFn: () => fetch(`/api/vehicles/${trip?.vehicleId}`).then(res => res.json()),
+    enabled: !!trip?.vehicleId,
   });
 
   // Create new trip mutation
@@ -278,17 +285,33 @@ export default function TripDetails() {
             </CardContent>
           </Card>
 
-          {/* Driver Information */}
-          <Card className="material-shadow">
+          {/* Vehicle Information */}
+          <Card className="material-shadow trip-details-card">
             <CardHeader>
               <CardTitle className="flex items-center">
-                <User className="h-5 w-5 mr-2" />
-                Driver
+                <Truck className="h-5 w-5 mr-2" />
+                Vehicle Information
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-lg font-medium">{trip.driverName || "Driver"}</p>
-              <p className="text-sm text-gray-600">Trip operator</p>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">Number Plate</p>
+                  <p className="font-medium">{vehicle?.numberPlate || "Not specified"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">Make & Model</p>
+                  <p className="font-medium">{vehicle ? `${vehicle.make} ${vehicle.model}` : "Not specified"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">Year</p>
+                  <p className="font-medium">{vehicle?.year || "Not specified"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">Capacity</p>
+                  <p className="font-medium">{vehicle?.capacity ? `${vehicle.capacity} passengers` : "Not specified"}</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
