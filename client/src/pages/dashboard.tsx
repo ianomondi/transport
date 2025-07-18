@@ -5,7 +5,6 @@ import { QuickActions } from "@/components/QuickActions";
 import { LiveMap } from "@/components/LiveMap";
 import { TripStatistics } from "@/components/TripStatistics";
 import { RecentTrips } from "@/components/RecentTrips";
-import { NewTripModal } from "@/components/NewTripModal";
 import { ExpenseModal } from "@/components/ExpenseModal";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
 import { NotificationToast } from "@/components/NotificationToast";
@@ -13,10 +12,15 @@ import { QueueStatusCard } from "@/components/QueueStatusCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Info } from "lucide-react";
 import { useState } from "react";
+import { useLocation } from "wouter";
 
 export default function Dashboard() {
-  const [showNewTripModal, setShowNewTripModal] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
+  const [, setLocation] = useLocation();
+
+  const handleNewTrip = () => {
+    setLocation('/trips');
+  };
 
   return (
     <>
@@ -35,7 +39,7 @@ export default function Dashboard() {
               <div className="flex items-center space-x-2">
                 <Info className="h-4 w-4 text-blue-600" />
                 <p className="text-sm text-blue-800">
-                  Tap the + button to add new trips or track expenses
+                  Tap the + button to start trips or track expenses
                 </p>
               </div>
             </CardContent>
@@ -46,13 +50,8 @@ export default function Dashboard() {
       <BottomNavigation />
       
       <FloatingActionButton 
-        onNewTrip={() => setShowNewTripModal(true)}
+        onNewTrip={handleNewTrip}
         onNewExpense={() => setShowExpenseModal(true)}
-      />
-      
-      <NewTripModal 
-        isOpen={showNewTripModal} 
-        onClose={() => setShowNewTripModal(false)} 
       />
       
       <ExpenseModal 

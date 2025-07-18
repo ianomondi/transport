@@ -36,7 +36,7 @@ export function FloatingActionButton({ onNewTrip, onNewExpense }: FloatingAction
                 onClick={handleTripClick}
               >
                 <Car className="h-5 w-5 mr-3" />
-                Add New Trip
+                Start Trip
               </Button>
               <Button
                 variant="ghost"

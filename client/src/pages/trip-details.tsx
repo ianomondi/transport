@@ -4,17 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TripStatusBadge } from "@/components/TripStatusBadge";
 import { DropOffPointManager } from "@/components/DropOffPointManager";
-import { NewTripModal } from "@/components/NewTripModal";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { formatTime, formatDate, formatDistance } from "@/lib/utils";
-import { useState } from "react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useGeolocation } from "@/hooks/useGeolocation";
 import type { Trip } from "@shared/schema";
 
 export default function TripDetails() {
   const params = useParams();
   const [, setLocation] = useLocation();
   const tripId = params.id;
-  const [isNewTripModalOpen, setIsNewTripModalOpen] = useState(false);
+  const { toast } = useToast();
+  const { location } = useGeolocation();
 
   const { data: trip, isLoading, error } = useQuery<Trip>({
     queryKey: ['/api/trips', tripId],
@@ -33,6 +35,38 @@ export default function TripDetails() {
     queryFn: () => fetch(`/api/drivers/${trip?.driverId}`).then(res => res.json()),
     enabled: !!trip?.driverId,
   });
+
+  // Create new trip mutation
+  const createTripMutation = useMutation({
+    mutationFn: (data: any) => apiRequest('POST', '/api/trips', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/trips/active'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/trips/recent'] });
+      toast({
+        title: "Trip Started",
+        description: "New trip has been started successfully",
+      });
+      setLocation('/dashboard');
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to start trip",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleStartTrip = () => {
+    if (trip) {
+      createTripMutation.mutate({
+        origin: trip.origin,
+        destination: trip.destination,
+        driverId: trip.driverId,
+        currentLocation: location,
+      });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -102,11 +136,12 @@ export default function TripDetails() {
           <h1 className="text-2xl font-bold text-gray-900">Trip #{trip.id}</h1>
           <div className="flex items-center space-x-3">
             <Button
-              onClick={() => setIsNewTripModalOpen(true)}
+              onClick={handleStartTrip}
+              disabled={createTripMutation.isPending}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Play className="h-4 w-4 mr-2" />
-              Start New Trip
+              {createTripMutation.isPending ? "Starting..." : "Start Same Trip"}
             </Button>
             <TripStatusBadge status={trip.status} />
           </div>
@@ -330,11 +365,6 @@ export default function TripDetails() {
           )}
         </div>
       </div>
-
-      <NewTripModal 
-        isOpen={isNewTripModalOpen}
-        onClose={() => setIsNewTripModalOpen(false)}
-      />
     </div>
   );
 }

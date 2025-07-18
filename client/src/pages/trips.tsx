@@ -1,19 +1,86 @@
 import { AppHeader } from "@/components/AppHeader";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
-import { MapPin, Clock, Users, DollarSign, User, Phone } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { MapPin, Clock, Users, DollarSign, User, Phone, Plus } from "lucide-react";
 import { useLocation } from "wouter";
 import { TripStatusBadge } from "@/components/TripStatusBadge";
 import { formatTime, formatDate, formatDistance } from "@/lib/utils";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useGeolocation } from "@/hooks/useGeolocation";
+import { useState } from "react";
 import type { Trip } from "@shared/schema";
 
 export default function Trips() {
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const { location } = useGeolocation();
+  const [selectedOrigin, setSelectedOrigin] = useState("");
+  const [selectedDestination, setSelectedDestination] = useState("");
+  const [selectedDriver, setSelectedDriver] = useState("");
+  const [showCreateForm, setShowCreateForm] = useState(false);
+
   const { data: trips = [], isLoading } = useQuery<Trip[]>({
     queryKey: ['/api/trips/recent?limit=50'],
     refetchInterval: 10000,
   });
+
+  const { data: locations = [] } = useQuery<string[]>({
+    queryKey: ['/api/locations'],
+  });
+
+  const { data: destinations = [] } = useQuery<string[]>({
+    queryKey: ['/api/destinations', selectedOrigin],
+    enabled: !!selectedOrigin,
+  });
+
+  const { data: drivers = [] } = useQuery<any[]>({
+    queryKey: ['/api/drivers'],
+  });
+
+  const createTripMutation = useMutation({
+    mutationFn: (data: any) => apiRequest('POST', '/api/trips', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/trips/active'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/trips/recent'] });
+      setShowCreateForm(false);
+      setSelectedOrigin("");
+      setSelectedDestination("");
+      setSelectedDriver("");
+      toast({
+        title: "Trip Started",
+        description: "New trip has been started successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to start trip",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCreateTrip = () => {
+    if (!selectedOrigin || !selectedDestination || !selectedDriver) {
+      toast({
+        title: "Missing Information",
+        description: "Please select origin, destination, and driver",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createTripMutation.mutate({
+      origin: selectedOrigin,
+      destination: selectedDestination,
+      driverId: parseInt(selectedDriver),
+      currentLocation: location,
+    });
+  };
 
   if (isLoading) {
     return (
@@ -50,10 +117,105 @@ export default function Trips() {
       <div className="p-4 pb-20">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-900">All Trips</h1>
-          <div className="text-sm text-gray-600">
-            {trips.length} trip{trips.length !== 1 ? 's' : ''} total
+          <div className="flex items-center space-x-3">
+            <Button
+              onClick={() => setShowCreateForm(!showCreateForm)}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {showCreateForm ? 'Cancel' : 'New Trip'}
+            </Button>
+            <div className="text-sm text-gray-600">
+              {trips.length} trip{trips.length !== 1 ? 's' : ''} total
+            </div>
           </div>
         </div>
+
+        {showCreateForm && (
+          <Card className="material-shadow mb-6">
+            <CardHeader>
+              <CardTitle>Create New Trip</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Origin
+                  </label>
+                  <Select value={selectedOrigin} onValueChange={setSelectedOrigin}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select origin" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {locations.map((location) => (
+                        <SelectItem key={location} value={location}>
+                          {location}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Destination
+                  </label>
+                  <Select 
+                    value={selectedDestination} 
+                    onValueChange={setSelectedDestination}
+                    disabled={!selectedOrigin}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select destination" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {destinations.map((destination) => (
+                        <SelectItem key={destination} value={destination}>
+                          {destination}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Driver
+                  </label>
+                  <Select value={selectedDriver} onValueChange={setSelectedDriver}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select driver" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {drivers.map((driver) => (
+                        <SelectItem key={driver.id} value={driver.id.toString()}>
+                          {driver.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex space-x-3">
+                  <Button
+                    onClick={handleCreateTrip}
+                    disabled={createTripMutation.isPending}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {createTripMutation.isPending ? "Starting..." : "Start Trip"}
+                  </Button>
+                  <Button
+                    onClick={() => setShowCreateForm(false)}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {trips.length === 0 ? (
           <Card className="material-shadow">
@@ -94,7 +256,10 @@ export default function Trips() {
                     <div className="flex items-center space-x-2">
                       <Users className="h-4 w-4 text-gray-400" />
                       <span className="text-sm text-gray-600">
-                        {trip.status === 'completed' ? trip.initialPassengers : trip.currentPassengers} passengers
+                        {trip.dropOffPoints 
+                          ? trip.dropOffPoints.reduce((sum, point) => sum + point.passengerCount, 0)
+                          : trip.initialPassengers || 0
+                        } passengers
                       </span>
                     </div>
                     <div className="flex items-center space-x-2">
