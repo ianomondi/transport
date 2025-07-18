@@ -92,7 +92,7 @@ export function RecentTrips() {
                 <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
                   <span className="text-xs text-gray-500">Revenue</span>
                   <span className="text-sm font-semibold text-green-600">
-                    ${parseFloat(trip.revenue).toFixed(2)}
+                    KES {parseFloat(trip.revenue).toLocaleString()}
                   </span>
                 </div>
               )}

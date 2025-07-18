@@ -125,7 +125,7 @@ export default function Analytics() {
                       <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-lg mx-auto mb-2">
                         <DollarSign className="h-6 w-6 text-purple-600" />
                       </div>
-                      <p className="text-2xl font-bold text-purple-600">${totalRevenue.toFixed(0)}</p>
+                      <p className="text-2xl font-bold text-purple-600">KES {totalRevenue.toLocaleString()}</p>
                       <p className="text-sm text-gray-600">Revenue</p>
                     </CardContent>
                   </Card>
@@ -227,7 +227,7 @@ export default function Analytics() {
                             </div>
                           </div>
                           <Badge variant="outline" className="text-green-600 border-green-300">
-                            ${driver.revenue.toFixed(0)}
+                            KES {driver.revenue.toLocaleString()}
                           </Badge>
                         </div>
                       ))}

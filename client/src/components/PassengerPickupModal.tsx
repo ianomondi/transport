@@ -203,9 +203,9 @@ export function PassengerPickupModal({
                 <span className="text-sm font-medium text-green-700">Fare Calculation</span>
               </div>
               <div className="space-y-1 text-sm text-green-600">
-                <p>Fare per passenger: RWF {calculatedFare}</p>
+                <p>Fare per passenger: KES {calculatedFare.toLocaleString()}</p>
                 <p>Total passengers: {passengerCount}</p>
-                <p className="font-bold">Total fare: RWF {totalFare}</p>
+                <p className="font-bold">Total fare: KES {totalFare.toLocaleString()}</p>
               </div>
             </div>
           )}

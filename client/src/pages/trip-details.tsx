@@ -266,12 +266,12 @@ export default function TripDetails() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-green-600">
-                ${parseFloat(trip.revenue || "0").toFixed(2)}
+                KES {parseFloat(trip.revenue || "0").toLocaleString()}
               </div>
               <p className="text-sm text-gray-600 mt-1">Total earnings from this trip</p>
               {trip.currentPassengers > 0 && (
                 <p className="text-xs text-orange-600 mt-1">
-                  ${(parseFloat(trip.revenue || "0") / trip.initialPassengers).toFixed(2)} per passenger
+                  KES {Math.round(parseFloat(trip.revenue || "0") / trip.initialPassengers).toLocaleString()} per passenger
                 </p>
               )}
             </CardContent>

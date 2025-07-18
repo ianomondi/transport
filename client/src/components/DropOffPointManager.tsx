@@ -126,7 +126,7 @@ export function DropOffPointManager({ trip }: DropOffPointManagerProps) {
                 <DollarSign className="h-4 w-4 text-green-600" />
               </div>
               <div>
-                <span className="text-2xl font-bold text-green-600">${getTotalRevenue().toFixed(2)}</span>
+                <span className="text-2xl font-bold text-green-600">KES {getTotalRevenue().toLocaleString()}</span>
                 <p className="text-xs text-gray-600 leading-tight">Total Revenue</p>
               </div>
             </div>
@@ -147,7 +147,7 @@ export function DropOffPointManager({ trip }: DropOffPointManagerProps) {
                       <div className="flex items-center space-x-2 mb-1">
                         <h4 className="font-medium text-gray-900">{point.name}</h4>
                         <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 border-green-200">
-                          ${point.farePerPassenger}/person
+                          KES {point.farePerPassenger}/person
                         </Badge>
                       </div>
                       <div className="flex items-center space-x-4 text-sm">
@@ -157,7 +157,7 @@ export function DropOffPointManager({ trip }: DropOffPointManagerProps) {
                         </div>
                         <div className="flex items-center space-x-1 text-green-600">
                           <TrendingUp className="h-3 w-3" />
-                          <span>${point.totalRevenue.toFixed(2)}</span>
+                          <span>KES {point.totalRevenue.toLocaleString()}</span>
                         </div>
                       </div>
                       
