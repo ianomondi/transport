@@ -6,9 +6,10 @@ import { Card, CardContent } from "@/components/ui/card";
 interface FloatingActionButtonProps {
   onNewTrip: () => void;
   onNewExpense: () => void;
+  disabled?: boolean;
 }
 
-export function FloatingActionButton({ onNewTrip, onNewExpense }: FloatingActionButtonProps) {
+export function FloatingActionButton({ onNewTrip, onNewExpense, disabled }: FloatingActionButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => setIsOpen(!isOpen);
@@ -32,8 +33,9 @@ export function FloatingActionButton({ onNewTrip, onNewExpense }: FloatingAction
             <CardContent className="p-2">
               <Button
                 variant="ghost"
-                className="w-full justify-start h-12 text-blue-700 hover:bg-blue-50"
+                className="w-full justify-start h-12 text-blue-700 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={handleTripClick}
+                disabled={disabled}
               >
                 <Car className="h-5 w-5 mr-3" />
                 Add Trip

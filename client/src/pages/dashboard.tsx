@@ -14,14 +14,24 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Info } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import type { Trip } from "@shared/schema";
 
 export default function Dashboard() {
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [showNewTripModal, setShowNewTripModal] = useState(false);
   const [, setLocation] = useLocation();
 
+  // Check if there's an active trip
+  const { data: activeTrip } = useQuery<Trip>({
+    queryKey: ['/api/trips/active'],
+    refetchInterval: 5000,
+  });
+
   const handleNewTrip = () => {
-    setShowNewTripModal(true);
+    if (!activeTrip || activeTrip.status !== 'active') {
+      setShowNewTripModal(true);
+    }
   };
 
   return (
@@ -41,7 +51,10 @@ export default function Dashboard() {
               <div className="flex items-center space-x-2">
                 <Info className="h-4 w-4 text-blue-600" />
                 <p className="text-sm text-blue-800">
-                  Tap the + button to add trips or track expenses
+                  {activeTrip && activeTrip.status === 'active' 
+                    ? "End current trip to start a new one" 
+                    : "Tap the + button to add trips or track expenses"
+                  }
                 </p>
               </div>
             </CardContent>
@@ -54,6 +67,7 @@ export default function Dashboard() {
       <FloatingActionButton 
         onNewTrip={handleNewTrip}
         onNewExpense={() => setShowExpenseModal(true)}
+        disabled={activeTrip && activeTrip.status === 'active'}
       />
       
       <ExpenseModal 

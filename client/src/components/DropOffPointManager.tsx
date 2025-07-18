@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Users, DollarSign, Plus, Minus, Navigation, TrendingUp } from "lucide-react";
+import { MapPin, Users, DollarSign, Plus, Minus, Navigation, TrendingUp, StopCircle } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -167,8 +167,8 @@ export function DropOffPointManager({ trip }: DropOffPointManagerProps) {
                       variant="outline"
                       size="sm"
                       onClick={() => updatePassengerCount(index, 1)}
-                      disabled={updateTripMutation.isPending}
-                      className="w-10 h-10 p-0 rounded-full border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 active:scale-95"
+                      disabled={updateTripMutation.isPending || trip.status === 'completed'}
+                      className="w-10 h-10 p-0 rounded-full border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Plus className="h-4 w-4 text-blue-600" />
                     </Button>
@@ -181,8 +181,8 @@ export function DropOffPointManager({ trip }: DropOffPointManagerProps) {
                       variant="outline"
                       size="sm"
                       onClick={() => updatePassengerCount(index, -1)}
-                      disabled={point.passengerCount === 0 || updateTripMutation.isPending}
-                      className="w-10 h-10 p-0 rounded-full border-2 border-red-200 hover:border-red-400 hover:bg-red-50 transition-all duration-200 active:scale-95 disabled:opacity-50"
+                      disabled={point.passengerCount === 0 || updateTripMutation.isPending || trip.status === 'completed'}
+                      className="w-10 h-10 p-0 rounded-full border-2 border-red-200 hover:border-red-400 hover:bg-red-50 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Minus className="h-4 w-4 text-red-600" />
                     </Button>
@@ -193,7 +193,7 @@ export function DropOffPointManager({ trip }: DropOffPointManagerProps) {
           ))}
         </div>
         
-        {trip.status === 'active' && (
+        {trip.status === 'active' ? (
           <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-blue-100">
             <div className="flex items-start space-x-3">
               <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -206,6 +206,22 @@ export function DropOffPointManager({ trip }: DropOffPointManagerProps) {
                 <p className="text-xs text-blue-700 leading-relaxed">
                   Tap + to add passengers boarding at each stop. Tap - to remove them when they alight. 
                   Revenue is calculated automatically based on fare per passenger.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200">
+            <div className="flex items-start space-x-3">
+              <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <StopCircle className="h-3 w-3 text-gray-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-1">
+                  Trip Completed
+                </p>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  This trip has been completed. Drop-off point management is no longer available.
                 </p>
               </div>
             </div>
