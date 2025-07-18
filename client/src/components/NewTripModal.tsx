@@ -14,6 +14,7 @@ import { z } from "zod";
 import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import type { Driver } from "@shared/schema";
 
 interface NewTripModalProps {
@@ -26,6 +27,7 @@ const formSchema = insertTripSchema;
 export function NewTripModal({ isOpen, onClose }: NewTripModalProps) {
   const { toast } = useToast();
   const { location } = useGeolocation();
+  const [, setLocationRoute] = useLocation();
   const [selectedOrigin, setSelectedOrigin] = useState<string>("");
 
   // Fetch available locations
@@ -73,6 +75,8 @@ export function NewTripModal({ isOpen, onClose }: NewTripModalProps) {
       form.reset();
       setSelectedOrigin("");
       onClose();
+      // Redirect to home page (dashboard)
+      setLocationRoute('/');
     },
     onError: () => {
       toast({
