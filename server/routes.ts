@@ -167,6 +167,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const trip = await storage.createTrip(tripWithDropOffs);
       
+      // If this driver was in a queue, remove them (they're starting a new trip)
+      if (tripData.driverId) {
+        const allQueues = await storage.getAllQueues();
+        
+        // Find any queue entries for this driver by checking trip ownership
+        for (const queueEntry of allQueues) {
+          const queueTrip = await storage.getTrip(queueEntry.tripId);
+          if (queueTrip && queueTrip.driverId === tripData.driverId) {
+            await storage.removeFromQueue(queueEntry.id);
+            
+            // Broadcast queue removal to all clients
+            broadcastToClients({
+              type: 'queue_removed',
+              queueId: queueEntry.id,
+              message: `Driver has started a new trip and left the queue`
+            });
+          }
+        }
+      }
+      
       // Broadcast new trip to all clients
       broadcastToClients({
         type: 'trip_created',
@@ -259,6 +279,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!trip) {
         return res.status(404).json({ error: 'Trip not found' });
+      }
+      
+      // Remove driver from any existing queue entries (they're starting a new trip)
+      if (trip.driverId) {
+        const allQueues = await storage.getAllQueues();
+        
+        // Find any queue entries for this driver by checking trip ownership
+        for (const queueEntry of allQueues) {
+          const queueTrip = await storage.getTrip(queueEntry.tripId);
+          if (queueTrip && queueTrip.driverId === trip.driverId) {
+            await storage.removeFromQueue(queueEntry.id);
+            
+            // Broadcast queue removal to all clients
+            broadcastToClients({
+              type: 'queue_removed',
+              queueId: queueEntry.id,
+              message: `Driver has started a new trip and left the queue`
+            });
+          }
+        }
       }
       
       // Broadcast trip start to all clients
