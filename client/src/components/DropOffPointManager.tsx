@@ -93,34 +93,42 @@ export function DropOffPointManager({ trip }: DropOffPointManagerProps) {
 
   return (
     <Card className="material-shadow overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg mr-3">
-              <Navigation className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">Drop-off Points</h3>
-              <p className="text-sm text-gray-600 mt-1">Manage passenger boarding</p>
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100 p-6">
+        <div className="flex items-center mb-4">
+          <div className="p-2 bg-blue-100 rounded-lg mr-3">
+            <Navigation className="h-5 w-5 text-blue-600" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-gray-900 text-lg">Drop-off Points</h3>
+            <p className="text-sm text-gray-600 mt-1">Manage passenger boarding</p>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white/70 rounded-lg p-3 border border-blue-100">
+            <div className="flex items-center space-x-2 mb-1">
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <Users className="h-4 w-4 text-blue-600" />
+              </div>
+              <div>
+                <span className="text-2xl font-bold text-blue-600">{getTotalPassengers()}</span>
+                <p className="text-xs text-gray-600 leading-tight">Total Passengers</p>
+              </div>
             </div>
           </div>
-          <div className="flex items-center space-x-3">
-            <div className="text-center">
-              <div className="flex items-center space-x-1 text-blue-600">
-                <Users className="h-4 w-4" />
-                <span className="font-bold">{getTotalPassengers()}</span>
+          
+          <div className="bg-white/70 rounded-lg p-3 border border-green-100">
+            <div className="flex items-center space-x-2 mb-1">
+              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                <DollarSign className="h-4 w-4 text-green-600" />
               </div>
-              <p className="text-xs text-gray-500">passengers</p>
-            </div>
-            <div className="text-center">
-              <div className="flex items-center space-x-1 text-green-600">
-                <DollarSign className="h-4 w-4" />
-                <span className="font-bold">${getTotalRevenue().toFixed(2)}</span>
+              <div>
+                <span className="text-2xl font-bold text-green-600">${getTotalRevenue().toFixed(2)}</span>
+                <p className="text-xs text-gray-600 leading-tight">Total Revenue</p>
               </div>
-              <p className="text-xs text-gray-500">revenue</p>
             </div>
           </div>
-        </CardTitle>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         <div className="divide-y divide-gray-100">
