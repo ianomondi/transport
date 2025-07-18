@@ -1,4 +1,4 @@
-import { trips, passengerEvents, locations, analytics, destinationQueues, expenses, drivers, type Trip, type InsertTrip, type PassengerEvent, type InsertPassengerEvent, type Location, type InsertLocation, type Analytics, type DestinationQueue, type InsertDestinationQueue, type Expense, type InsertExpense, type Driver, type InsertDriver } from "@shared/schema";
+import { trips, passengerEvents, locations, analytics, destinationQueues, expenses, drivers, vehicles, type Trip, type InsertTrip, type PassengerEvent, type InsertPassengerEvent, type Location, type InsertLocation, type Analytics, type DestinationQueue, type InsertDestinationQueue, type Expense, type InsertExpense, type Driver, type InsertDriver, type Vehicle, type InsertVehicle } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, sql } from "drizzle-orm";
 
@@ -46,6 +46,13 @@ export interface IStorage {
   getActiveDrivers(): Promise<Driver[]>;
   getDriver(id: number): Promise<Driver | undefined>;
   updateDriver(id: number, updates: Partial<Driver>): Promise<Driver | undefined>;
+
+  // Vehicle operations
+  createVehicle(vehicle: InsertVehicle): Promise<Vehicle>;
+  getVehicles(): Promise<Vehicle[]>;
+  getActiveVehicles(): Promise<Vehicle[]>;
+  getVehicle(id: number): Promise<Vehicle | undefined>;
+  updateVehicle(id: number, updates: Partial<Vehicle>): Promise<Vehicle | undefined>;
 }
 
 // Database Storage Implementation
@@ -261,6 +268,39 @@ export class DatabaseStorage implements IStorage {
     const result = await db.update(drivers)
       .set(updates)
       .where(eq(drivers.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async createVehicle(insertVehicle: InsertVehicle): Promise<Vehicle> {
+    const result = await db.insert(vehicles).values(insertVehicle).returning();
+    return result[0];
+  }
+
+  async getVehicles(): Promise<Vehicle[]> {
+    const result = await db.select().from(vehicles)
+      .orderBy(asc(vehicles.numberPlate));
+    return result;
+  }
+
+  async getActiveVehicles(): Promise<Vehicle[]> {
+    const result = await db.select().from(vehicles)
+      .where(eq(vehicles.isActive, true))
+      .orderBy(asc(vehicles.numberPlate));
+    return result;
+  }
+
+  async getVehicle(id: number): Promise<Vehicle | undefined> {
+    const result = await db.select().from(vehicles)
+      .where(eq(vehicles.id, id))
+      .limit(1);
+    return result[0];
+  }
+
+  async updateVehicle(id: number, updates: Partial<Vehicle>): Promise<Vehicle | undefined> {
+    const result = await db.update(vehicles)
+      .set(updates)
+      .where(eq(vehicles.id, id))
       .returning();
     return result[0];
   }

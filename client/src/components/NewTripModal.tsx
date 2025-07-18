@@ -9,13 +9,13 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useGeolocation } from "@/hooks/useGeolocation";
-import { Play, X, User, MapPin, Route } from "lucide-react";
+import { Play, X, User, MapPin, Route, Truck } from "lucide-react";
 import { z } from "zod";
 import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import type { Driver } from "@shared/schema";
+import type { Driver, Vehicle } from "@shared/schema";
 
 interface NewTripModalProps {
   isOpen: boolean;
@@ -48,6 +48,12 @@ export function NewTripModal({ isOpen, onClose }: NewTripModalProps) {
     queryKey: ['/api/drivers/active'],
     queryFn: () => fetch('/api/drivers/active').then(res => res.json()) as Promise<Driver[]>,
   });
+
+  // Fetch active vehicles
+  const { data: vehicles = [] } = useQuery({
+    queryKey: ['/api/vehicles/active'],
+    queryFn: () => fetch('/api/vehicles/active').then(res => res.json()) as Promise<Vehicle[]>,
+  });
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -56,6 +62,7 @@ export function NewTripModal({ isOpen, onClose }: NewTripModalProps) {
       destination: "",
       currentLocation: null,
       driverId: undefined,
+      vehicleId: undefined,
     },
   });
 
@@ -182,6 +189,37 @@ export function NewTripModal({ isOpen, onClose }: NewTripModalProps) {
                           <div className="flex items-center space-x-2">
                             <User className="h-4 w-4" />
                             <span>{driver.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="vehicleId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <Truck className="h-4 w-4" />
+                    Vehicle
+                  </FormLabel>
+                  <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a vehicle" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {vehicles.map((vehicle) => (
+                        <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
+                          <div className="flex items-center space-x-2">
+                            <Truck className="h-4 w-4" />
+                            <span>{vehicle.numberPlate} - {vehicle.make} {vehicle.model}</span>
                           </div>
                         </SelectItem>
                       ))}

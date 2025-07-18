@@ -23,6 +23,7 @@ export const trips = pgTable("trips", {
   totalDistance: decimal("total_distance", { precision: 8, scale: 2 }).default("0"),
   revenue: decimal("revenue", { precision: 10, scale: 2 }).default("0"),
   driverId: integer("driver_id"),
+  vehicleId: integer("vehicle_id"),
   turnsCount: integer("turns_count").default(0),
 });
 
@@ -84,11 +85,23 @@ export const drivers = pgTable("drivers", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+export const vehicles = pgTable("vehicles", {
+  id: serial("id").primaryKey(),
+  numberPlate: text("number_plate").notNull().unique(),
+  make: text("make").notNull(),
+  model: text("model").notNull(),
+  year: integer("year").notNull(),
+  capacity: integer("capacity").notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const insertTripSchema = createInsertSchema(trips).pick({
   origin: true,
   destination: true,
   currentLocation: true,
   driverId: true,
+  vehicleId: true,
 });
 
 export const insertPassengerEventSchema = createInsertSchema(passengerEvents).pick({
@@ -124,6 +137,14 @@ export const insertDriverSchema = createInsertSchema(drivers).pick({
   assistantContact: true,
 });
 
+export const insertVehicleSchema = createInsertSchema(vehicles).pick({
+  numberPlate: true,
+  make: true,
+  model: true,
+  year: true,
+  capacity: true,
+});
+
 export type InsertTrip = z.infer<typeof insertTripSchema>;
 export type Trip = typeof trips.$inferSelect;
 export type InsertPassengerEvent = z.infer<typeof insertPassengerEventSchema>;
@@ -137,3 +158,5 @@ export type Expense = typeof expenses.$inferSelect;
 export type InsertExpense = z.infer<typeof insertExpenseSchema>;
 export type Driver = typeof drivers.$inferSelect;
 export type InsertDriver = z.infer<typeof insertDriverSchema>;
+export type Vehicle = typeof vehicles.$inferSelect;
+export type InsertVehicle = z.infer<typeof insertVehicleSchema>;

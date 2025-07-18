@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertTripSchema, insertPassengerEventSchema, insertLocationSchema, insertDestinationQueueSchema, insertExpenseSchema, insertDriverSchema } from "@shared/schema";
+import { insertTripSchema, insertPassengerEventSchema, insertLocationSchema, insertDestinationQueueSchema, insertExpenseSchema, insertDriverSchema, insertVehicleSchema } from "@shared/schema";
 import { generateDailyReport, sendDailyReport } from "./email-reporting";
 import { z } from "zod";
 
@@ -550,6 +550,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error updating driver:', error);
       res.status(500).json({ error: 'Failed to update driver' });
+    }
+  });
+
+  // Vehicle routes
+  app.get('/api/vehicles', async (req, res) => {
+    try {
+      const vehicles = await storage.getVehicles();
+      res.json(vehicles);
+    } catch (error) {
+      console.error('Error fetching vehicles:', error);
+      res.status(500).json({ error: 'Failed to fetch vehicles' });
+    }
+  });
+
+  app.get('/api/vehicles/active', async (req, res) => {
+    try {
+      const vehicles = await storage.getActiveVehicles();
+      res.json(vehicles);
+    } catch (error) {
+      console.error('Error fetching active vehicles:', error);
+      res.status(500).json({ error: 'Failed to fetch active vehicles' });
+    }
+  });
+
+  app.get('/api/vehicles/:id', async (req, res) => {
+    try {
+      const vehicle = await storage.getVehicle(parseInt(req.params.id));
+      if (!vehicle) {
+        return res.status(404).json({ error: 'Vehicle not found' });
+      }
+      res.json(vehicle);
+    } catch (error) {
+      console.error('Error fetching vehicle:', error);
+      res.status(500).json({ error: 'Failed to fetch vehicle' });
+    }
+  });
+
+  app.post('/api/vehicles', async (req, res) => {
+    try {
+      const vehicleData = insertVehicleSchema.parse(req.body);
+      const vehicle = await storage.createVehicle(vehicleData);
+      res.json(vehicle);
+    } catch (error) {
+      console.error('Error creating vehicle:', error);
+      res.status(400).json({ error: error instanceof z.ZodError ? error.errors : 'Invalid vehicle data' });
+    }
+  });
+
+  app.patch('/api/vehicles/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updatedVehicle = await storage.updateVehicle(id, req.body);
+      
+      if (!updatedVehicle) {
+        return res.status(404).json({ error: 'Vehicle not found' });
+      }
+
+      res.json(updatedVehicle);
+    } catch (error) {
+      console.error('Error updating vehicle:', error);
+      res.status(500).json({ error: 'Failed to update vehicle' });
     }
   });
 
