@@ -93,6 +93,10 @@ export default function TripDetails() {
     }
   };
 
+  const handleEndTrip = () => {
+    endTripMutation.mutate(trip.id);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen">
@@ -163,18 +167,20 @@ export default function TripDetails() {
             <TripStatusBadge status={trip.status} />
           </div>
           <div className="flex space-x-3">
-            <Button
-              onClick={handleStartTrip}
-              disabled={createTripMutation.isPending}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <Play className="h-4 w-4 mr-2" />
-              {createTripMutation.isPending ? "Starting..." : "Start Same Trip"}
-            </Button>
+            {trip.status !== 'active' && trip.status !== 'completed' && (
+              <Button
+                onClick={handleStartTrip}
+                disabled={createTripMutation.isPending}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Play className="h-4 w-4 mr-2" />
+                {createTripMutation.isPending ? "Starting..." : "Start Trip"}
+              </Button>
+            )}
             
             {trip.status === 'active' && (
               <Button
-                onClick={() => endTripMutation.mutate(trip.id)}
+                onClick={handleEndTrip}
                 disabled={endTripMutation.isPending}
                 variant="destructive"
                 className="bg-red-600 hover:bg-red-700 text-white"
