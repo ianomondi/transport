@@ -144,10 +144,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { getDropOffPointsForRoute } = await import('./route-mapping.js');
       const dropOffPoints = getDropOffPointsForRoute(tripData.origin, tripData.destination);
       
-      // Create trip with automatic drop-off points
+      // Calculate total passengers from drop-off points
+      const totalPassengers = dropOffPoints.reduce((sum, point) => sum + point.passengerCount, 0);
+      
+      // Create trip with automatic drop-off points and passenger count
       const tripWithDropOffs = {
         ...tripData,
-        dropOffPoints
+        dropOffPoints,
+        initialPassengers: totalPassengers,
+        currentPassengers: totalPassengers
       };
       
       const trip = await storage.createTrip(tripWithDropOffs);
@@ -207,6 +212,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const updates = req.body;
+      
+      // If dropOffPoints are being updated, recalculate passenger counts
+      if (updates.dropOffPoints) {
+        const totalPassengers = updates.dropOffPoints.reduce((sum: number, point: any) => sum + point.passengerCount, 0);
+        updates.initialPassengers = totalPassengers;
+        updates.currentPassengers = totalPassengers;
+      }
+      
       const trip = await storage.updateTrip(id, updates);
       
       if (!trip) {

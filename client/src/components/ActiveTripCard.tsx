@@ -73,7 +73,12 @@ export function ActiveTripCard() {
           <div className="passenger-counter mt-4">
             <div className="flex items-center justify-between">
               <span className="text-sm opacity-90">Passengers</span>
-              <span className="text-2xl font-bold">{activeTrip.initialPassengers}</span>
+              <span className="text-2xl font-bold">
+                {activeTrip.dropOffPoints 
+                  ? activeTrip.dropOffPoints.reduce((sum, point) => sum + point.passengerCount, 0)
+                  : activeTrip.initialPassengers || 0
+                }
+              </span>
             </div>
           </div>
         </CardContent>

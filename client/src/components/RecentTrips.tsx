@@ -77,7 +77,10 @@ export function RecentTrips() {
                 <div className="flex items-center space-x-1">
                   <Users className="h-3 w-3" />
                   <span>
-                    {trip.status === 'completed' ? trip.initialPassengers : trip.currentPassengers} passengers
+                    {trip.dropOffPoints 
+                      ? trip.dropOffPoints.reduce((sum, point) => sum + point.passengerCount, 0)
+                      : trip.initialPassengers || 0
+                    } passengers
                   </span>
                 </div>
                 <div className="flex items-center space-x-1">
