@@ -128,11 +128,16 @@ export default function Queue() {
                             </div>
                             <div>
                               <div className="font-medium text-gray-900">
-                                Trip #{entry.tripId}
+                                {entry.vehicle?.numberPlate ? `${entry.vehicle.numberPlate} (${entry.vehicle.make} ${entry.vehicle.model})` : `Trip #${entry.tripId}`}
                               </div>
                               <div className="text-sm text-gray-600">
-                                Driver: {entry.driverId || 'Unknown'}
+                                Driver: {entry.driver?.name || 'Unknown'}
                               </div>
+                              {entry.driver?.contact && (
+                                <div className="text-xs text-gray-500">
+                                  Contact: {entry.driver.contact}
+                                </div>
+                              )}
                               <div className="text-xs text-gray-500">
                                 Arrived: {formatTime(entry.arrivalTime)}
                               </div>

@@ -299,7 +299,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const queueEntry = await storage.addToQueue({
         tripId: trip.id,
         destination: trip.destination,
-        driverId: `driver_${Math.random().toString(36).substring(7)}`
+        driverId: trip.driverId ? trip.driverId.toString() : `driver_${Math.random().toString(36).substring(7)}`
       });
 
       // Broadcast trip end and queue position to all clients
@@ -418,7 +418,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/queue', async (req, res) => {
     try {
       const allQueues = await storage.getAllQueues();
-      res.json(allQueues);
+      
+      // Enrich queue data with trip, driver, and vehicle details
+      const enrichedQueues = await Promise.all(
+        allQueues.map(async (queue) => {
+          const trip = await storage.getTrip(queue.tripId);
+          let driver = null;
+          let vehicle = null;
+          
+          if (trip?.driverId) {
+            driver = await storage.getDriver(trip.driverId);
+          }
+          
+          if (trip?.vehicleId) {
+            vehicle = await storage.getVehicle(trip.vehicleId);
+          }
+          
+          return {
+            ...queue,
+            trip,
+            driver,
+            vehicle
+          };
+        })
+      );
+      
+      res.json(enrichedQueues);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch all queues' });
     }
@@ -437,7 +462,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const destination = decodeURIComponent(req.params.destination);
       const queue = await storage.getQueueForDestination(destination);
-      res.json(queue);
+      
+      // Enrich queue data with trip, driver, and vehicle details
+      const enrichedQueue = await Promise.all(
+        queue.map(async (queueItem) => {
+          const trip = await storage.getTrip(queueItem.tripId);
+          let driver = null;
+          let vehicle = null;
+          
+          if (trip?.driverId) {
+            driver = await storage.getDriver(trip.driverId);
+          }
+          
+          if (trip?.vehicleId) {
+            vehicle = await storage.getVehicle(trip.vehicleId);
+          }
+          
+          return {
+            ...queueItem,
+            trip,
+            driver,
+            vehicle
+          };
+        })
+      );
+      
+      res.json(enrichedQueue);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch queue' });
     }

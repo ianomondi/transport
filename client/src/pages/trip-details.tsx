@@ -67,10 +67,7 @@ export default function TripDetails() {
   // End trip mutation
   const endTripMutation = useMutation({
     mutationFn: (tripId: number) => 
-      apiRequest('PATCH', `/api/trips/${tripId}`, {
-        status: 'completed',
-        endTime: new Date()
-      }),
+      apiRequest('POST', `/api/trips/${tripId}/end`, {}),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/trips', tripId] });
       queryClient.invalidateQueries({ queryKey: ['/api/trips/active'] });
