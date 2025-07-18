@@ -1,78 +1,12 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus, Minus } from "lucide-react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { useGeolocation } from "@/hooks/useGeolocation";
+import { useQuery } from "@tanstack/react-query";
 import type { Trip } from "@shared/schema";
 
 export function ActiveTripCard() {
-  const { toast } = useToast();
-  const { location } = useGeolocation();
-  
   const { data: activeTrip, isLoading } = useQuery<Trip>({
     queryKey: ['/api/trips/active'],
     refetchInterval: 5000,
   });
-
-  const passengerOnMutation = useMutation({
-    mutationFn: () => apiRequest('POST', '/api/passenger-events', {
-      tripId: activeTrip?.id,
-      eventType: 'board',
-      passengerCount: 1,
-      location: location,
-    }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/trips/active'] });
-      toast({
-        title: "Passenger Added",
-        description: "Passenger has boarded the vehicle",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to add passenger",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const passengerOffMutation = useMutation({
-    mutationFn: () => apiRequest('POST', '/api/passenger-events', {
-      tripId: activeTrip?.id,
-      eventType: 'alight',
-      passengerCount: 1,
-      location: location,
-    }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/trips/active'] });
-      toast({
-        title: "Passenger Removed",
-        description: "Passenger has alighted from the vehicle",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to remove passenger",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handlePassengerOn = () => {
-    if (activeTrip) {
-      passengerOnMutation.mutate();
-    }
-  };
-
-  const handlePassengerOff = () => {
-    if (activeTrip && activeTrip.currentPassengers > 0) {
-      passengerOffMutation.mutate();
-    }
-  };
 
   if (isLoading) {
     return (
@@ -141,25 +75,6 @@ export function ActiveTripCard() {
               <span className="text-sm opacity-90">Current Passengers</span>
               <span className="text-2xl font-bold">{activeTrip.currentPassengers}</span>
             </div>
-          </div>
-          
-          <div className="flex space-x-2 mt-4">
-            <Button
-              className="flex-1 bg-green-500 hover:bg-green-600 text-white ripple-effect"
-              onClick={handlePassengerOn}
-              disabled={passengerOnMutation.isPending}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Passenger On
-            </Button>
-            <Button
-              className="flex-1 bg-red-500 hover:bg-red-600 text-white ripple-effect"
-              onClick={handlePassengerOff}
-              disabled={passengerOffMutation.isPending || activeTrip.currentPassengers === 0}
-            >
-              <Minus className="h-4 w-4 mr-2" />
-              Passenger Off
-            </Button>
           </div>
         </CardContent>
       </Card>
