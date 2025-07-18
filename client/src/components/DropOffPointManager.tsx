@@ -160,26 +160,28 @@ export function DropOffPointManager({ trip }: DropOffPointManagerProps) {
                           <span>${point.totalRevenue.toFixed(2)}</span>
                         </div>
                       </div>
+                      
+                      {trip.status === 'active' && (
+                        <div className="mt-3">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedPickupLocation(point.name);
+                              setPickupModalOpen(true);
+                            }}
+                            className="flex items-center gap-1 px-3 py-1 text-xs bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:border-green-300 transition-all duration-200"
+                          >
+                            <UserPlus className="h-3 w-3" />
+                            Pick Up Passengers
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
                 
                 <div className="flex items-center space-x-3 ml-4">
-                  {trip.status === 'active' && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedPickupLocation(point.name);
-                        setPickupModalOpen(true);
-                      }}
-                      className="flex items-center gap-1 px-3 py-1 text-xs bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:border-green-300 transition-all duration-200"
-                    >
-                      <UserPlus className="h-3 w-3" />
-                      Pick Up
-                    </Button>
-                  )}
-                  
                   <div className="flex flex-col items-center space-y-2">
                     <Button
                       variant="outline"
