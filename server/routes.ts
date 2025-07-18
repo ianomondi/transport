@@ -169,7 +169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Broadcast new trip to all clients
       broadcastToClients({
-        type: 'trip_started',
+        type: 'trip_created',
         trip
       });
       
@@ -245,6 +245,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(trip);
     } catch (error) {
       res.status(500).json({ error: 'Failed to update trip' });
+    }
+  });
+
+  // Start trip endpoint
+  app.post('/api/trips/:id/start', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const trip = await storage.updateTrip(id, {
+        status: 'active',
+        startTime: new Date()
+      });
+      
+      if (!trip) {
+        return res.status(404).json({ error: 'Trip not found' });
+      }
+      
+      // Broadcast trip start to all clients
+      broadcastToClients({
+        type: 'trip_started',
+        trip
+      });
+      
+      res.json(trip);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to start trip' });
     }
   });
 

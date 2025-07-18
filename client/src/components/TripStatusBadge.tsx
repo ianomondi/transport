@@ -9,6 +9,12 @@ interface TripStatusBadgeProps {
 export function TripStatusBadge({ status, className = "" }: TripStatusBadgeProps) {
   const getStatusConfig = () => {
     switch (status) {
+      case 'pending':
+        return {
+          icon: Clock,
+          className: 'bg-blue-500 hover:bg-blue-600 text-white',
+          label: 'Pending'
+        };
       case 'active':
         return {
           icon: Clock,

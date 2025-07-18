@@ -6,10 +6,10 @@ export const trips = pgTable("trips", {
   id: serial("id").primaryKey(),
   origin: text("origin").notNull(),
   destination: text("destination").notNull(),
-  status: text("status").notNull().default("active"), // active, completed, cancelled
+  status: text("status").notNull().default("pending"), // pending, active, completed, cancelled
   currentPassengers: integer("current_passengers").notNull().default(0),
   initialPassengers: integer("initial_passengers").notNull().default(0),
-  startTime: timestamp("start_time").notNull().defaultNow(),
+  startTime: timestamp("start_time"),
   endTime: timestamp("end_time"),
   currentLocation: jsonb("current_location").$type<{ lat: number; lng: number }>(),
   route: jsonb("route").$type<{ lat: number; lng: number }[]>().default([]),

@@ -43,17 +43,17 @@ export default function TripDetails() {
     enabled: !!trip?.vehicleId,
   });
 
-  // Create new trip mutation
-  const createTripMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('POST', '/api/trips', data),
+  // Start trip mutation
+  const startTripMutation = useMutation({
+    mutationFn: (tripId: number) => apiRequest('POST', `/api/trips/${tripId}/start`, {}),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/trips', tripId] });
       queryClient.invalidateQueries({ queryKey: ['/api/trips/active'] });
       queryClient.invalidateQueries({ queryKey: ['/api/trips/recent'] });
       toast({
         title: "Trip Started",
-        description: "New trip has been started successfully",
+        description: "Trip has been started successfully",
       });
-      setLocation('/dashboard');
     },
     onError: () => {
       toast({
@@ -91,12 +91,7 @@ export default function TripDetails() {
 
   const handleStartTrip = () => {
     if (trip) {
-      createTripMutation.mutate({
-        origin: trip.origin,
-        destination: trip.destination,
-        driverId: trip.driverId,
-        currentLocation: location,
-      });
+      startTripMutation.mutate(trip.id);
     }
   };
 
@@ -177,11 +172,11 @@ export default function TripDetails() {
             {trip.status !== 'active' && trip.status !== 'completed' && (
               <Button
                 onClick={handleStartTrip}
-                disabled={createTripMutation.isPending}
+                disabled={startTripMutation.isPending}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <Play className="h-4 w-4 mr-2" />
-                {createTripMutation.isPending ? "Starting..." : "Start Trip"}
+                {startTripMutation.isPending ? "Starting..." : "Start Trip"}
               </Button>
             )}
             
