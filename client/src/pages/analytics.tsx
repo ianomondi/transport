@@ -241,85 +241,82 @@ export default function Analytics() {
                 </CardContent>
               </Card>
 
-              {/* Insights and Recommendations */}
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Performance Metrics */}
-                <Card className="material-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center text-lg">
-                      <Target className="h-5 w-5 mr-2 text-purple-600" />
-                      Performance Metrics
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Passengers per Trip</span>
-                      <span className="font-semibold">
-                        {parseFloat(analytics?.averagePassengersPerTrip || "0").toFixed(1)}
-                      </span>
+              {/* Performance Metrics */}
+              <Card className="material-shadow">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-lg">
+                    <Target className="h-5 w-5 mr-2 text-purple-600" />
+                    Performance Metrics
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Passengers per Trip</span>
+                    <span className="font-semibold">
+                      {parseFloat(analytics?.averagePassengersPerTrip || "0").toFixed(1)}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Peak Hour</span>
+                    <span className="font-semibold text-blue-600">{peakHourText}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Efficiency Score</span>
+                    <div className="flex items-center">
+                      <Progress value={efficiencyScore} className="w-16 h-2 mr-2" />
+                      <span className="font-semibold text-green-600">{efficiencyScore}%</span>
                     </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Peak Hour</span>
-                      <span className="font-semibold text-blue-600">{peakHourText}</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Efficiency Score</span>
-                      <div className="flex items-center">
-                        <Progress value={efficiencyScore} className="w-16 h-2 mr-2" />
-                        <span className="font-semibold text-green-600">{efficiencyScore}%</span>
-                      </div>
-                    </div>
+                  </div>
 
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Active Drivers</span>
-                      <span className="font-semibold">{drivers?.length || 0}</span>
-                    </div>
-                  </CardContent>
-                </Card>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Active Drivers</span>
+                    <span className="font-semibold">{drivers?.length || 0}</span>
+                  </div>
+                </CardContent>
+              </Card>
 
-                {/* Smart Insights */}
-                <Card className="material-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center text-lg">
-                      <Zap className="h-5 w-5 mr-2 text-yellow-600" />
-                      Smart Insights
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {routes && routes.length > 0 && (
-                      <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <p className="text-sm font-medium text-blue-900">Most Popular Route</p>
-                        <p className="text-xs text-blue-700">{routes[0].route}</p>
-                        <p className="text-xs text-blue-600 mt-1">
-                          {routes[0].count} trips • Avg {routes[0].avgPassengers.toFixed(1)} passengers
-                        </p>
-                      </div>
-                    )}
-                    
-                    {topDriver && (
-                      <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                        <p className="text-sm font-medium text-green-900">Top Performer</p>
-                        <p className="text-xs text-green-700">{topDriver.driverName}</p>
-                        <p className="text-xs text-green-600 mt-1">
-                          {topDriver.trips} trips completed today
-                        </p>
-                      </div>
-                    )}
-                    
-                    <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
-                      <p className="text-sm font-medium text-orange-900">Optimization Tip</p>
-                      <p className="text-xs text-orange-700">
-                        {analytics?.totalTrips && analytics.totalTrips > 0 
-                          ? `Consider scheduling more vehicles during ${peakHourText} for peak demand`
-                          : "Start tracking trips to receive optimization recommendations"
-                        }
+              {/* Smart Insights */}
+              <Card className="material-shadow">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-lg">
+                    <Zap className="h-5 w-5 mr-2 text-yellow-600" />
+                    Smart Insights
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {routes && routes.length > 0 && (
+                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <p className="text-sm font-medium text-blue-900">Most Popular Route</p>
+                      <p className="text-xs text-blue-700">{routes[0].route}</p>
+                      <p className="text-xs text-blue-600 mt-1">
+                        {routes[0].count} trips • Avg {routes[0].avgPassengers.toFixed(1)} passengers
                       </p>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
+                  )}
+                  
+                  {topDriver && (
+                    <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                      <p className="text-sm font-medium text-green-900">Top Performer</p>
+                      <p className="text-xs text-green-700">{topDriver.driverName}</p>
+                      <p className="text-xs text-green-600 mt-1">
+                        {topDriver.trips} trips completed today
+                      </p>
+                    </div>
+                  )}
+                  
+                  <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
+                    <p className="text-sm font-medium text-orange-900">Optimization Tip</p>
+                    <p className="text-xs text-orange-700">
+                      {analytics?.totalTrips && analytics.totalTrips > 0 
+                        ? `Consider scheduling more vehicles during ${peakHourText} for peak demand`
+                        : "Start tracking trips to receive optimization recommendations"
+                      }
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
         </div>
