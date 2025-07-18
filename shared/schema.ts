@@ -87,7 +87,6 @@ export const drivers = pgTable("drivers", {
 export const insertTripSchema = createInsertSchema(trips).pick({
   origin: true,
   destination: true,
-  initialPassengers: true,
   currentLocation: true,
   driverId: true,
 });

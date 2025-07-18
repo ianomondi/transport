@@ -21,9 +21,7 @@ interface NewTripModalProps {
   onClose: () => void;
 }
 
-const formSchema = insertTripSchema.extend({
-  initialPassengers: z.number().min(0).max(100),
-});
+const formSchema = insertTripSchema;
 
 export function NewTripModal({ isOpen, onClose }: NewTripModalProps) {
   const { toast } = useToast();
@@ -54,7 +52,6 @@ export function NewTripModal({ isOpen, onClose }: NewTripModalProps) {
     defaultValues: {
       origin: "",
       destination: "",
-      initialPassengers: 0,
       currentLocation: null,
       driverId: undefined,
     },
@@ -162,30 +159,7 @@ export function NewTripModal({ isOpen, onClose }: NewTripModalProps) {
               )}
             />
             
-            <FormField
-              control={form.control}
-              name="initialPassengers"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Initial Passengers
-                  </FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="number" 
-                      min="0" 
-                      max="100"
-                      placeholder="0"
-                      {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
+
             <FormField
               control={form.control}
               name="driverId"

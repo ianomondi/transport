@@ -56,7 +56,6 @@ export class DatabaseStorage implements IStorage {
       .values({
         ...insertTrip,
         revenue: "0",
-        driverName: "Driver",
         turnsCount: 0,
       })
       .returning();
