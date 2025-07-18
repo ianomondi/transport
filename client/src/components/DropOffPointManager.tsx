@@ -6,7 +6,7 @@ import { MapPin, Users, DollarSign, Plus, Minus, Navigation, TrendingUp, StopCir
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { PassengerPickupModal } from "./PassengerPickupModal";
+import { PassengerBoardingInterface } from "./PassengerBoardingInterface";
 import type { Trip } from "@shared/schema";
 
 interface DropOffPoint {
@@ -249,8 +249,8 @@ export function DropOffPointManager({ trip }: DropOffPointManagerProps) {
         )}
       </CardContent>
       
-      {/* Passenger Pickup Modal */}
-      <PassengerPickupModal
+      {/* Passenger Boarding Interface */}
+      <PassengerBoardingInterface
         isOpen={pickupModalOpen}
         onClose={() => {
           setPickupModalOpen(false);
